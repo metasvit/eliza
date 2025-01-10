@@ -2,7 +2,7 @@ services:
     tee:
         build:
             context: .
-            dockerfile: Dockerfile-prj01
+            dockerfile: Dockerfile-gcvps
         stdin_open: true
         tty: true
         volumes:
