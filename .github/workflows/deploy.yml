@@ -50,6 +50,7 @@ jobs:
                     export TWITTER_USERNAME=${{ secrets.TWITTER_USERNAME }} && \
                     export TWITTER_PASSWORD=${{ secrets.TWITTER_PASSWORD }} && \
                     export TWITTER_EMAIL=${{ secrets.TWITTER_EMAIL }} && \
+                    export TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} && \
                     docker compose -f docker-compose-gcvps.yaml down && \
                     docker compose -p ${{ env.projectName }} -f docker-compose-gcvps.yaml up -d --build"
 
