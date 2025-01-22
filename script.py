@@ -5,12 +5,12 @@ import os
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
-load_dotenv()
+# load_dotenv()
 
 # Replace these with your own values from environment variables
-api_id = os.getenv("API_ID")
-api_hash = os.getenv("API_HASH")
-phone_number = os.getenv("PHONE_NUMBER")
+api_id = "24344346"
+api_hash = "0ae609349ce85cf9f39c8af6c3e35c60"
+phone_number = "+380732976199"
 
 # Create the client and connect
 client = TelegramClient('session_name', api_id, api_hash)
@@ -30,20 +30,20 @@ async def main():
 
     # Check if the bot can access a known chat
     try:
-        chat = await client.get_input_entity('@my_channel')  # Replace with a known channel username
+        chat = await client.get_input_entity('@sad_clarkson_bot')  # Replace with a known channel username
         print(f"Successfully accessed chat: {chat}")
     except Exception as e:
         print(f"Error accessing chat: {e}")
 
     # Check if the bot can access the target chat
     try:
-        chat = await client.get_input_entity('2393633389')  # Replace with the correct chat ID or username
+        chat = await client.get_input_entity('@sad_clarkson_bot')  # Replace with the correct chat ID or username
         print(f"Successfully accessed chat: {chat}")
     except Exception as e:
         print(f"Error accessing chat: {e}")
 
     # Listen for messages from Bot 1
-    @client.on(events.NewMessage(chats='@Lismanuga'))
+    @client.on(events.NewMessage(chats='@sad_clarkson_bot'))
     async def handle_bot1_message(event):
         message = event.message.message
         print(f"Received message from Bot 1: {message}")  # Debugging log
