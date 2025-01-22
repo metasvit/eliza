@@ -2,10 +2,10 @@
     "name": "NoNameBot",
     "plugins": [],
     "clients": [
-        "telegram",
-        "twitter"
+        "twitter",
+        "telegram"
     ],
-    "modelProvider": "openai",
+    "modelProvider": "openrouter",
     "settings": {
         "secrets": {},
         "voice": {
