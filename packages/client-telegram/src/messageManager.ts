@@ -27,6 +27,7 @@ import {
 } from "./constants";
 
 import fs from "fs";
+import http from 'http';
 
 const MAX_MESSAGE_LENGTH = 4096; // Telegram's max message length
 
@@ -825,6 +826,66 @@ export class MessageManager {
                 : "caption" in message
                   ? (message as any).caption
                   : "";
+
+        // Check for the specific command to send a message via API
+        if (messageText.includes('/analyze')) {
+            // Extract the text after '/analyze'
+            const messageContent = messageText.split('/analyze')[1]?.trim();
+
+            if (messageContent) {
+                try {
+                    // Prepare the data to send
+                    const postData = JSON.stringify({ message: messageContent });
+
+                    // Set up the request options
+                    const options = {
+                        hostname: '127.0.0.1',
+                        port: 5000,
+                        path: '/send_message',
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Content-Length': Buffer.byteLength(postData),
+                        },
+                    };
+
+                    // Create the request
+                    const req = http.request(options, (res) => {
+                        let data = '';
+
+                        // A chunk of data has been received.
+                        res.on('data', (chunk) => {
+                            data += chunk;
+                        });
+
+                        // The whole response has been received.
+                        res.on('end', async () => {
+                            elizaLogger.info('Message sent via API');
+                            try {
+                                const jsonResponse = JSON.parse(data);
+                                const scarlettResponse = jsonResponse.scarlett_response;
+                                // Send the scarlett_response back to the user
+                                await ctx.telegram.sendMessage(ctx.chat.id, scarlettResponse);
+                            } catch (parseError) {
+                                elizaLogger.error('Error parsing API response:', parseError);
+                            }
+                        });
+                    });
+
+                    // Handle request errors
+                    req.on('error', (error) => {
+                        elizaLogger.error('Error sending message via API:', error);
+                    });
+
+                    // Write data to request body
+                    req.write(postData);
+                    req.end();
+                } catch (error) {
+                    elizaLogger.error('Error sending message via API:', error);
+                }
+            }
+            return;
+        }
 
         // Add team handling at the start
         if (
