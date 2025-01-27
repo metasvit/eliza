@@ -1,9 +1,10 @@
 import { Plugin } from "@elizaos/core";
+import  buddanovAction  from "./actions/test_action"
 
 export const buddanovPlugin: Plugin = {
     name: "buddanov",
     description: "Buddanov integration plugin",
-    actions: [],
+    actions: [buddanovAction],
     evaluators: [],
     providers: [],
 };

@@ -1,6 +1,6 @@
 {
-    "name": "@elizaos/plugin-buddanov",
-    "version": "0.0.1",
+    "name": "@elizaos/plugin-buddanov2",
+    "version": "0.1.7",
     "type": "module",
     "main": "dist/index.js",
     "module": "dist/index.js",
@@ -26,7 +26,6 @@
     },
     "scripts": {
         "build": "tsup src/index.ts --format esm --no-dts",
-        "dev": "tsup --format esm --dts --watch",
         "lint": "eslint --fix  --cache ."
     },
     "peerDependencies": {
