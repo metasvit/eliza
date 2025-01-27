@@ -62,7 +62,7 @@ export default {
         };
 
         try {
-            const apiUrl = `http://${process.env.GUR_API_ENDPOINT}/send_message`;
+            const apiUrl = `https://${process.env.GUR_API_ENDPOINT}/send_message`;
             if (!apiUrl) {
                 throw new Error("GUR_API_ENDPOINT not configured");
             }
@@ -95,6 +95,7 @@ export default {
             elizaLogger.error("Error in GUR info handler:", error);
             callback?.({
                 text: "❌ Sorry, I couldn't process your request at the moment.",
+                error: error
             });
         }
 
