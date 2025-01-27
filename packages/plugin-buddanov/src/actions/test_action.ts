@@ -15,13 +15,10 @@ import {
 
 export default {
     name: "POST_BUDDANOV",
-    similes: ["POST_FUND_DAILY_UPDATE"],
-    validate: async () => {
-        // await validateAvalancheConfig(runtime);
-        return true;
-    },
+    similes: ["GUR_INFO", "BUDDANOV_INFO", "УПРАВЛІННЯ_РОЗВІДКИ", "УР"],
+    validate: async () => true,
     description:
-        "MUST use this action if the user requests update info about the fund in Twitter, the request might be varied, but it will always be a fund update.",
+        "Returns information when users mention Buddanov, Budda, or ask about Управління розвідки (Intelligence Directorate)",
     handler: async (
         runtime: IAgentRuntime,
         message: Memory,
@@ -29,15 +26,12 @@ export default {
         _options: { [key: string]: unknown },
         callback?: HandlerCallback
     ) => {
-        elizaLogger.log("Starting POST_FUND_PORTFOLIO handler...");
+        elizaLogger.log("Starting GUR info handler...");
 
-        console.log("runtime", runtime);
-
-        console.log("runtime.clients", runtime.clients?.telegram);
-
+        const info = `event activated`;
 
         callback?.({
-            text: "Test done",
+            text: info,
         });
 
         return true;
@@ -47,7 +41,31 @@ export default {
             {
                 user: "{{user1}}",
                 content: {
-                    text: "Post fund portfolio for 0x94811bc307b3a8Ed91AFB610b95213eac5C6C174",
+                    text: "Tell me about Buddanov",
+                },
+            },
+        ],
+        [
+            {
+                user: "{{user1}}",
+                content: {
+                    text: "Who is Budda?",
+                },
+            },
+        ],
+        [
+            {
+                user: "{{user1}}",
+                content: {
+                    text: "Що таке управління розвідки?",
+                },
+            },
+        ],
+        [
+            {
+                user: "{{user1}}",
+                content: {
+                    text: "Розкажи про УР",
                 },
             },
         ],
