@@ -1,8 +1,10 @@
 {
+
     "name": "NoNameBot",
-    "plugins": [],
+    "plugins": [
+        "@elizaos/plugin-buddanov"
+    ],
     "clients": [
-        "twitter",
         "telegram"
     ],
     "modelProvider": "openrouter",
