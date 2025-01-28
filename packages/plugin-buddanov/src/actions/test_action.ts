@@ -13,13 +13,9 @@ import {
 } from "@elizaos/core";
 
 interface GURResponse {
-    status: string;
-    message: string;
-    timestamp: string;
-    data?: {
-        response?: string;
-        error?: string;
-    };
+    formatted_message: string;    // The formatted message from the API
+    scarlett_response: string;    // The response from Buddanov
+    status: string;              // Status of the request (e.g., "Message sent successfully")
 }
 
 export default {
@@ -38,15 +34,15 @@ export default {
         elizaLogger.log("Starting GUR info handler...");
 
         const handleResponse = (response: GURResponse) => {
-            if (response.status === 'error') {
+            if (response.status !== 'Message sent successfully') {
                 callback?.({
-                    text: response.data?.error || "An error occurred while processing your request.",
+                    text: "An error occurred while processing your request.",
                 });
                 return;
             }
 
             // Handle successful response
-            const responseText = response.data?.response || response.message || 'Message received';
+            const responseText = response.scarlett_response || 'Message received';
 
             // Send initial confirmation
             callback?.({
@@ -78,8 +74,7 @@ export default {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    message: "4FkNq8RcCYg4ZGDWh14scJ7ej3m5vMjYTcWoJVkupump",
-                    query: message.content.text,
+                    message: message.content.text,
                     timestamp: new Date().toISOString()
                 })
             });
