@@ -44,11 +44,6 @@ export default {
             // Handle successful response
             const responseText = response.scarlett_response || 'Message received';
 
-            // Send initial confirmation
-            callback?.({
-                text: "✅ Message sent successfully",
-            });
-
             // Send the actual response after a short delay
             setTimeout(() => {
                 callback?.({
@@ -62,11 +57,6 @@ export default {
             if (!apiUrl) {
                 throw new Error("GUR_API_ENDPOINT not configured");
             }
-
-            // Send initial processing message
-            callback?.({
-                text: "Processing your request...",
-            });
 
             const response = await fetch(apiUrl, {
                 method: 'POST',
@@ -93,8 +83,7 @@ export default {
                 error: error
             });
         }
-
-        return true;
+        return false;
     },
     examples: [
         [
@@ -127,6 +116,12 @@ export default {
                 content: {
                     text: "Розкажи про УР",
                 },
+            },
+        ],
+        [
+            {
+                user: "{{user1}}",
+                content: { text: "Buddanov", action: "POST_BUDDANOV" },
             },
         ],
     ] as ActionExample[][],
