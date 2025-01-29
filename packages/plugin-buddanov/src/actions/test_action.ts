@@ -11,6 +11,7 @@ import {
     ModelClass,
     Content,
 } from "@elizaos/core";
+import { TelegramHashAnalyzer } from '../util/TelegramHashAnalyzer';
 
 interface GURResponse {
     formatted_message: string;    // The formatted message from the API
@@ -33,48 +34,40 @@ export default {
     ) => {
         elizaLogger.log("Starting GUR info handler...");
 
-        const handleResponse = (response: GURResponse) => {
-            if (response.status !== 'Message sent successfully') {
-                callback?.({
-                    text: "An error occurred while processing your request.",
-                });
-                return;
-            }
+        const analyzer = new TelegramHashAnalyzer({
+            apiId: process.env.TELEGRAM_API_ID!,
+            apiHash: process.env.TELEGRAM_API_HASH!,
+            phoneNumber: process.env.TELEGRAM_PHONE_NUMBER!,
+            chatId: Number(process.env.TELEGRAM_CHAT_ID!),
+            threadId: Number(process.env.TELEGRAM_THREAD_ID!),
+        });
 
-            // Handle successful response
-            const responseText = response.scarlett_response || 'Message received';
-
-            // Send the actual response after a short delay
-            setTimeout(() => {
-                callback?.({
-                    text: responseText,
-                });
-            }, 1000);
-        };
-
-        try {
-            const apiUrl = `https://${process.env.GUR_API_ENDPOINT}/send_message`;
-            if (!apiUrl) {
-                throw new Error("GUR_API_ENDPOINT not configured");
-            }
-
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: message.content.text,
-                    timestamp: new Date().toISOString()
-                })
+        /*try {
+            // Initialize TelegramHashAnalyzer with env variables
+            const analyzer = new TelegramHashAnalyzer({
+                apiId: process.env.TELEGRAM_API_ID!,
+                apiHash: process.env.TELEGRAM_API_HASH!,
+                phoneNumber: process.env.TELEGRAM_PHONE_NUMBER!,
+                chatId: Number(process.env.TELEGRAM_CHAT_ID!),
+                threadId: Number(process.env.TELEGRAM_THREAD_ID!),
             });
 
-            if (!response.ok) {
-                throw new Error(`API request failed with status ${response.status}`);
-            }
+            // Analyze the message
+            const result = await analyzer.analyzeHash(message.content.text);
 
-            const data: GURResponse = await response.json();
-            handleResponse(data);
+            if (result.status === 'success' && result.scarlettResponse) {
+                callback?.({
+                    text: result.scarlettResponse,
+                });
+            } else if (result.status === 'error') {
+                callback?.({
+                    text: `❌ Error: ${result.error}`,
+                });
+            } else {
+                callback?.({
+                    text: "❌ No response received from the analysis service.",
+                });
+            }
 
         } catch (error) {
             elizaLogger.error("Error in GUR info handler:", error);
@@ -82,7 +75,7 @@ export default {
                 text: "❌ Sorry, I couldn't process your request at the moment.",
                 error: error
             });
-        }
+        }*/
         return false;
     },
     examples: [

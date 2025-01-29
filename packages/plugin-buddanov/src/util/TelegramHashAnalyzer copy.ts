@@ -10,6 +10,21 @@ interface TelegramConfig {
   threadId: number;
 }
 
+function validateEnvVariables() {
+  const required = [
+    'TELEGRAM_API_ID',
+    'TELEGRAM_API_HASH',
+    'TELEGRAM_PHONE_NUMBER',
+    'TELEGRAM_CHAT_ID',
+    'TELEGRAM_THREAD_ID'
+  ];
+
+  const missing = required.filter(key => !process.env[key]);
+  if (missing.length > 0) {
+    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+  }
+}
+
 export class TelegramHashAnalyzer {
   private client: TelegramClient;
   private readonly chatId: number;
@@ -27,6 +42,7 @@ export class TelegramHashAnalyzer {
       config.apiHash,
       { connectionRetries: 5 }
     );
+    console.log("client created");
   }
 
   private isValidHash(text: string): boolean {
