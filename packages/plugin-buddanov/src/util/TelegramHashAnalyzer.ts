@@ -42,12 +42,13 @@ export class TelegramHashAnalyzer {
       config.apiHash,
       { connectionRetries: 5 }
     );
-    console.log("client created");
+    console.log("log: constructor");
   }
 
   private isValidHash(text: string): boolean {
     const hashPattern = /[A-Za-z0-9]{32,}/;
     return hashPattern.test(text);
+    console.log("log: isValidHash");
   }
 
   private formatMessage(messageText: string): string {
@@ -55,6 +56,7 @@ export class TelegramHashAnalyzer {
     if (hashMatch) {
       const hashValue = hashMatch[0];
       return `@AgentScarlettBot analyze ${hashValue}`;
+      console.log("log: formatMessage");
     }
     return messageText;
   }
@@ -87,12 +89,12 @@ export class TelegramHashAnalyzer {
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
-    await this.client.start({
+    /*await this.client.start({
       phoneNumber: this.config.phoneNumber,
-      password: async () => await input.text('Please enter your password: '),
+      /*password: async () => await input.text('Please enter your password: '),
       phoneCode: async () => await input.text('Please enter the code you received: '),
       onError: (err) => console.log(err),
-    });
+    });*/
 
     this.isInitialized = true;
     console.log('Telegram client initialized successfully');

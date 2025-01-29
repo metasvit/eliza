@@ -34,15 +34,15 @@ export default {
     ) => {
         elizaLogger.log("Starting GUR info handler...");
 
-        const analyzer = new TelegramHashAnalyzer({
+        /*const analyzer = new TelegramHashAnalyzer({
             apiId: process.env.TELEGRAM_API_ID!,
             apiHash: process.env.TELEGRAM_API_HASH!,
             phoneNumber: process.env.TELEGRAM_PHONE_NUMBER!,
             chatId: Number(process.env.TELEGRAM_CHAT_ID!),
             threadId: Number(process.env.TELEGRAM_THREAD_ID!),
-        });
+        });*/
 
-        /*try {
+        try {
             // Initialize TelegramHashAnalyzer with env variables
             const analyzer = new TelegramHashAnalyzer({
                 apiId: process.env.TELEGRAM_API_ID!,
@@ -75,7 +75,7 @@ export default {
                 text: "❌ Sorry, I couldn't process your request at the moment.",
                 error: error
             });
-        }*/
+        }
         return false;
     },
     examples: [
