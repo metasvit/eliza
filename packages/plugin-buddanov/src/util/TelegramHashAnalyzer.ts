@@ -2,6 +2,7 @@ import { TelegramClient } from 'telegram';
 import { StringSession } from 'telegram/sessions';
 import input from 'input';
 import type { IAgentRuntime } from "@elizaos/core";
+import { composeContext } from "@elizaos/core";
 
 interface TelegramConfig {
   apiId: string;
@@ -56,13 +57,11 @@ export class TelegramHashAnalyzer {
   }
 
   private formatMessage(messageText: string): string {
-    const hashMatch = messageText.match(/[A-Za-z0-9]{32,}/);
-    if (hashMatch) {
-      const hashValue = hashMatch[0];
-      return `@AgentScarlettBot analyze ${hashValue}`;
-      console.log("log: formatMessage");
-    }
-    return messageText;
+    const template = "@AgentScarlettBot analyze {{hash}}";
+    const state = { hash: messageText };
+    const formatted = composeContext({ state, template });
+
+    return formatted !== "@AgentScarlettBot analyze " ? formatted : messageText;
   }
 
   private async getScarlettResponse(messageId: number, timeout: number = 30000): Promise<string | null> {
@@ -100,7 +99,7 @@ export class TelegramHashAnalyzer {
       console.log('🔧 Спроба ініціалізації Telegram клієнта...');
       console.log(`📱 Використовується номер: ${this.config.phoneNumber}`);
       console.log(`🆔 API ID: ${this.config.apiId}`);
-      console.log(`🔑 Довжина сесії: ${(this.client.session.save() as string).length} символів`);
+      /*console.log(`🔑 Довжина сесії: ${(this.client.session.save() as string).length} символів`);*/
 
       console.log('🔄 Підключення до серверів Telegram...');
       await this.client.connect();
