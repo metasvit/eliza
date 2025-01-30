@@ -34,13 +34,6 @@ export default {
     ) => {
         elizaLogger.log("Starting GUR info handler...");
 
-        /*const analyzer = new TelegramHashAnalyzer({
-            apiId: process.env.TELEGRAM_API_ID!,
-            apiHash: process.env.TELEGRAM_API_HASH!,
-            phoneNumber: process.env.TELEGRAM_PHONE_NUMBER!,
-            chatId: Number(process.env.TELEGRAM_CHAT_ID!),
-            threadId: Number(process.env.TELEGRAM_THREAD_ID!),
-        });*/
 
         try {
             // Initialize TelegramHashAnalyzer with env variables

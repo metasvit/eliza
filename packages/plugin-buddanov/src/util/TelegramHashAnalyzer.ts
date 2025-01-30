@@ -1,6 +1,7 @@
 import { TelegramClient } from 'telegram';
 import { StringSession } from 'telegram/sessions';
 import input from 'input';
+import type { IAgentRuntime } from "@elizaos/core";
 
 interface TelegramConfig {
   apiId: string;
@@ -35,7 +36,10 @@ export class TelegramHashAnalyzer {
     this.chatId = config.chatId;
     this.threadId = config.threadId;
 
-    const stringSession = new StringSession(''); // Use empty string for first start
+    const stringSession = new StringSession(
+      '1AgAOMTQ5LjE1NC4xNjcuNDEBu6xZXuo6EhH0AsIbfXAvw76F84eg/fjY+BNw+lDPeElAr7EsvTZJ6OyI3MmCeaXL4a1dhRDbgQDMXFOhw4+56FpVpQrN6OACyhhtLJ3UTHS9HjgqbILsd2Tk77lMlSW109mixg9ADHhUW580HvGSSjymGXvPPQdq+kxCSrmvGEizNfGBZT6eoW7sMrG9P8GoPO3tqa8mllqPuWh//EAci+eWPz+xLP/QBtVgolkaB16YYDaBEvUOGKl9jVhIGQ5ZqYOeIz17q+CTgmNIBp1dkb3JIwa27Y4iDGReQ8uym9qaxe8KeEN2y+hbjOtffI23yMrN4y0RArsAHUYE9B4nPuQ='
+    );
+
     this.client = new TelegramClient(
       stringSession,
       parseInt(config.apiId),
@@ -87,17 +91,43 @@ export class TelegramHashAnalyzer {
   }
 
   async initialize(): Promise<void> {
-    if (this.isInitialized) return;
+    if (this.isInitialized) {
+      console.log('ℹ Клієнт Telegram вже ініціалізований');
+      return;
+    }
 
-    /*await this.client.start({
-      phoneNumber: this.config.phoneNumber,
-      /*password: async () => await input.text('Please enter your password: '),
-      phoneCode: async () => await input.text('Please enter the code you received: '),
-      onError: (err) => console.log(err),
-    });*/
+    try {
+      console.log('🔧 Спроба ініціалізації Telegram клієнта...');
+      console.log(`📱 Використовується номер: ${this.config.phoneNumber}`);
+      console.log(`🆔 API ID: ${this.config.apiId}`);
+      console.log(`🔑 Довжина сесії: ${(this.client.session.save() as string).length} символів`);
 
-    this.isInitialized = true;
-    console.log('Telegram client initialized successfully');
+      console.log('🔄 Підключення до серверів Telegram...');
+      await this.client.connect();
+      console.log('✅ Успішне підключення до серверів');
+
+      console.log('🔍 Перевірка авторизації...');
+      const isAuthorized = await this.client.isUserAuthorized();
+      console.log(`📊 Статус авторизації: ${isAuthorized ? 'АКТИВНА' : 'НЕАКТИВНА'}`);
+
+      if (!isAuthorized) {
+        console.log('⛔ Сесія недійсна або протермінована');
+        throw new Error('Неавторизований доступ');
+      }
+
+      console.log('👤 Отримання інформації про користувача...');
+      const me = await this.client.getMe();
+      console.log(`🤖 Ідентифіковано як: @${me.username} (${me.phone})`);
+
+      this.isInitialized = true;
+      console.log('🚀 Telegram клієнт успішно ініціалізований');
+    } catch (error) {
+      console.error('💥 Критична помилка ініціалізації:');
+      console.error('Код помилки:', error.code);
+      console.error('Повідомлення:', error.message);
+      console.error('Стек викликів:', error.stack);
+      throw error;
+    }
   }
 
   async analyzeHash(messageText: string): Promise<{
@@ -107,8 +137,16 @@ export class TelegramHashAnalyzer {
     error?: string;
   }> {
     try {
+      console.log('🔍 Початок аналізу хешу...');
       if (!this.isInitialized) {
+        console.log('⚠️ Клієнт не ініціалізований, запуск ініціалізації...');
         await this.initialize();
+      }
+
+      console.log('🔌 Перевірка стану підключення...');
+      if (!this.client.connected) {
+        console.log('🔄 Відновлення з\'єднання...');
+        await this.client.connect();
       }
 
       if (!this.isValidHash(messageText)) {
@@ -139,6 +177,7 @@ export class TelegramHashAnalyzer {
         };
       }
     } catch (error) {
+      console.error('⛔ Помилка під час аналізу:', error);
       return {
         status: 'error',
         error: error instanceof Error ? error.message : 'Unknown error occurred',
@@ -148,5 +187,15 @@ export class TelegramHashAnalyzer {
 
   private isUser(sender: any): sender is { username: string } {
     return sender && typeof sender === 'object' && 'username' in sender;
+  }
+
+  private async sendTestMessage() {
+    try {
+      console.log('📨 Спроба відправки тестового повідомлення...');
+      await this.client.sendMessage('me', { message: 'Тестове повідомлення' });
+      console.log('✅ Тестове повідомлення успішно відправлено');
+    } catch (error) {
+      console.error('❌ Помилка відправки тестового повідомлення:', error);
+    }
   }
 }
