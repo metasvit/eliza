@@ -1,5 +1,5 @@
 import { Plugin } from "@elizaos/core";
-import  buddanovAction  from "./actions/test_action"
+import  buddanovAction  from "./actions/analyze_action"
 
 export const buddanovPlugin: Plugin = {
     name: "buddanov",
