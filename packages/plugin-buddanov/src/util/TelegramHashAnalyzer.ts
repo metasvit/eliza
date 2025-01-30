@@ -58,7 +58,7 @@ export class TelegramHashAnalyzer {
 
   private formatMessage(messageText: string): string {
     const template = "@AgentScarlettBot analyze {{hash}}";
-    const state = { hash: messageText };
+    const state = { hash: messageText } as any;
     const formatted = composeContext({ state, template });
 
     return formatted !== "@AgentScarlettBot analyze " ? formatted : messageText;
