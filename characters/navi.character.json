@@ -1,6 +1,8 @@
 {
     "name": "Navi",
-    "plugins": [],
+    "plugins": [
+        "@elizaos/plugin-gmxbt"
+    ],
     "clients": [
         "twitter"
     ],
