@@ -36,7 +36,7 @@ export class TwitterPostJobService
     }
 
     async runCron(): Promise<void> {
-        cron.schedule("*/1 * * * *", async () => {
+        cron.schedule("0 12 * * *", async () => {
             elizaLogger.log(
                 "Run updatePortfolioTweet at",
                 new Date().toUTCString()
@@ -75,6 +75,9 @@ export class TwitterPostJobService
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
+
+            const responseData = await response.json();
+            console.log("Update Portfolio response", responseData);
         } catch (error) {
             elizaLogger.error("Error updating portfolio twitter", error);
         }
