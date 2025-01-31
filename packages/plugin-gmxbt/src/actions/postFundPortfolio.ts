@@ -47,7 +47,7 @@ export default {
         return true;
     },
     description:
-        "MUST use this action if the user requests update info about the fund in Twitter, the request might be varied, but it will always be a fund update. Do not ignore the request.",
+        "MUST use this action if the user requests update info about the fund in Twitter, the request might be varied, but it will always be a fund update.",
     handler: async (
         runtime: IAgentRuntime,
         message: Memory,
