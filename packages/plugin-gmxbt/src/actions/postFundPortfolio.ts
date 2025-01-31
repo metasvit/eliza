@@ -17,6 +17,7 @@ const fundPortfolioTemplate = `
 Input data: {{fundPortfolio}}
 
 If the fundPortfolio is empty, return empty string
+{{agentName}} shouldn't use IGNORE.
 
 # Requirements:
 - Keep it under 280 characters
@@ -46,7 +47,7 @@ export default {
         return true;
     },
     description:
-        "MUST use this action if the user requests update info about the fund in Twitter, the request might be varied, but it will always be a fund update.",
+        "MUST use this action if the user requests update info about the fund in Twitter, the request might be varied, but it will always be a fund update. Do not ignore the request.",
     handler: async (
         runtime: IAgentRuntime,
         message: Memory,
@@ -94,19 +95,23 @@ export default {
                 modelClass: ModelClass.MEDIUM,
             });
 
-            // Send response to agent
-            callback?.({
-                text: tweetText,
-            });
-
             const bClient = runtime.clients?.twitter.client;
             const twitterPostClient = runtime.clients?.twitter.post;
 
             if (!bClient || !twitterPostClient) {
-                throw new Error("Twitter client not found");
+                // Send response to agent
+                callback?.({
+                    text: "Twitter client not found",
+                });
+                return false;
             }
 
             await twitterPostClient.sendStandardTweet(bClient, tweetText);
+
+            // Send response to agent
+            callback?.({
+                text: tweetText,
+            });
 
             return true;
         } catch (error) {
