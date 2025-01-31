@@ -91,40 +91,40 @@ export class TelegramHashAnalyzer {
 
   async initialize(): Promise<void> {
     if (this.isInitialized) {
-      console.log('ℹ Клієнт Telegram вже ініціалізований');
+      console.log('ℹ Telegram client is already initialized');
       return;
     }
 
     try {
-      console.log('🔧 Спроба ініціалізації Telegram клієнта...');
-      console.log(`📱 Використовується номер: ${this.config.phoneNumber}`);
+      console.log('🔧 Attempting to initialize Telegram client...');
+      console.log(`📱 Using phone number: ${this.config.phoneNumber}`);
       console.log(`🆔 API ID: ${this.config.apiId}`);
-      /*console.log(`🔑 Довжина сесії: ${(this.client.session.save() as string).length} символів`);*/
+      /*console.log(`🔑 Session length: ${(this.client.session.save() as string).length} characters`);*/
 
-      console.log('🔄 Підключення до серверів Telegram...');
+      console.log('🔄 Connecting to Telegram servers...');
       await this.client.connect();
-      console.log('✅ Успішне підключення до серверів');
+      console.log('✅ Successfully connected to servers');
 
-      console.log('🔍 Перевірка авторизації...');
+      console.log('🔍 Checking authorization...');
       const isAuthorized = await this.client.isUserAuthorized();
-      console.log(`📊 Статус авторизації: ${isAuthorized ? 'АКТИВНА' : 'НЕАКТИВНА'}`);
+      console.log(`📊 Authorization status: ${isAuthorized ? 'ACTIVE' : 'INACTIVE'}`);
 
       if (!isAuthorized) {
-        console.log('⛔ Сесія недійсна або протермінована');
-        throw new Error('Неавторизований доступ');
+        console.log('⛔ Session is invalid or expired');
+        throw new Error('Unauthorized access');
       }
 
-      console.log('👤 Отримання інформації про користувача...');
+      console.log('👤 Getting user information...');
       const me = await this.client.getMe();
-      console.log(`🤖 Ідентифіковано як: @${me.username} (${me.phone})`);
+      console.log(`🤖 Identified as: @${me.username} (${me.phone})`);
 
       this.isInitialized = true;
-      console.log('🚀 Telegram клієнт успішно ініціалізований');
+      console.log('🚀 Telegram client successfully initialized');
     } catch (error) {
-      console.error('💥 Критична помилка ініціалізації:');
-      console.error('Код помилки:', error.code);
-      console.error('Повідомлення:', error.message);
-      console.error('Стек викликів:', error.stack);
+      console.error('💥 Critical initialization error:');
+      console.error('Error code:', error.code);
+      console.error('Message:', error.message);
+      console.error('Stack trace:', error.stack);
       throw error;
     }
   }
@@ -136,15 +136,15 @@ export class TelegramHashAnalyzer {
     error?: string;
   }> {
     try {
-      console.log('🔍 Початок аналізу хешу...');
+      console.log('🔍 Starting hash analysis...');
       if (!this.isInitialized) {
-        console.log('⚠️ Клієнт не ініціалізований, запуск ініціалізації...');
+        console.log('⚠️ Client not initialized, starting initialization...');
         await this.initialize();
       }
 
-      console.log('🔌 Перевірка стану підключення...');
+      console.log('🔌 Checking connection status...');
       if (!this.client.connected) {
-        console.log('🔄 Відновлення з\'єднання...');
+        console.log('🔄 Restoring connection...');
         await this.client.connect();
       }
 
@@ -176,7 +176,7 @@ export class TelegramHashAnalyzer {
         };
       }
     } catch (error) {
-      console.error('⛔ Помилка під час аналізу:', error);
+      console.error('⛔ Error during analysis:', error);
       return {
         status: 'error',
         error: error instanceof Error ? error.message : 'Unknown error occurred',
@@ -190,11 +190,11 @@ export class TelegramHashAnalyzer {
 
   private async sendTestMessage() {
     try {
-      console.log('📨 Спроба відправки тестового повідомлення...');
-      await this.client.sendMessage('me', { message: 'Тестове повідомлення' });
-      console.log('✅ Тестове повідомлення успішно відправлено');
+      console.log('📨 Attempting to send test message...');
+      await this.client.sendMessage('me', { message: 'Test message' });
+      console.log('✅ Test message sent successfully');
     } catch (error) {
-      console.error('❌ Помилка відправки тестового повідомлення:', error);
+      console.error('❌ Error sending test message:', error);
     }
   }
 }
