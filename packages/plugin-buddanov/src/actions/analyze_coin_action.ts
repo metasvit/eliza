@@ -21,7 +21,7 @@ interface GURResponse {
 
 export default {
     name: "ANALYZE_COIN",
-    similes: ["analyze", "hash", "coin", "analyze coin", "analyze token", "analyze hash"],
+    similes: ["ANALYZE", "HASH", "COIN", "ANALYZE COIN", "ANALYZE TOKEN", "ANALYZE HASH"],
     validate: async () => true,
     description:
         "Returns information when users mention token, hash, posting analyze, check token )",
