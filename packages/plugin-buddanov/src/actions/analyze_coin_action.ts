@@ -13,6 +13,7 @@ import {
     generateText,
 } from "@elizaos/core";
 import { TelegramHashAnalyzer } from '../util/TelegramHashAnalyzer';
+import puppeteer from 'puppeteer';
 
 const scarlettPostTemplate = `
 # Task: Shorten the received response from scarlett to 280 characters while keeping the important values
@@ -48,6 +49,10 @@ interface GURResponse {
     status: string;              // Status of the request (e.g., "Message sent successfully")
 }
 
+interface ScrapedData {
+    addresses: string[];
+}
+
 export default {
     name: "ANALYZE_COIN",
     similes: ["ANALYZE", "HASH", "COIN", "ANALYZE COIN", "ANALYZE TOKEN", "ANALYZE HASH"],
@@ -63,8 +68,66 @@ export default {
     ) => {
         elizaLogger.log("Starting hash analyze info handler...");
 
-
         try {
+            // Launch browser and scrape data
+            const browser = await puppeteer.launch({
+                headless: false,
+                args: ['--no-sandbox', '--disable-dev-shm-usage']
+            });
+
+            const page = await browser.newPage();
+            const url = 'https://www.cookie.fun/';
+
+            await page.goto(url, { waitUntil: 'networkidle0' });
+            console.log("Page loaded successfully.");
+
+            await page.screenshot({
+                path: 'debug-screenshot.png',
+                fullPage: true
+            });
+            console.log("Screenshot saved as debug-screenshot.png");
+
+            const extractedData = await page.evaluate(() => {
+                console.log("Starting page evaluation");
+
+                // Get all page content for debugging
+                const bodyContent = document.body.innerHTML;
+                console.log("Page content length:", bodyContent.length);
+
+                const elements = document.getElementsByClassName('__variable_e081fc __className_0dc517 font-sans text-text-primary antialiased bg-primary');
+                console.log("Found elements:", elements.length);
+
+                const elementContent = Array.from(elements).map(element => {
+                    console.log("Element content:", element.textContent?.substring(0, 100));
+                    return element.textContent?.trim() || '';
+                })[0];
+
+                const addresses: string[] = [];
+                if (elementContent) {
+                    console.log("Processing content length:", elementContent.length);
+                    // Match the exact format including escaped quotes
+                    const regex = /contractAddress\\\":\\\"([A-Za-z0-9]{32,44})\\/g;
+                    let match;
+                    while ((match = regex.exec(elementContent)) !== null && addresses.length < 10) {
+                        console.log("Found address:", match[1]);
+                        addresses.push(match[1]);
+                    }
+                } else {
+                    console.log("No element content found");
+                }
+
+                return addresses;
+            });
+
+            // Log results
+            console.log("🔍 Extraction completed");
+            console.log("Found addresses:", extractedData);
+
+            await browser.close();
+
+            // Store scraped data in state for later use
+            state.scrapedAddresses = extractedData;
+
             // Initialize TelegramHashAnalyzer with env variables
             const analyzer = new TelegramHashAnalyzer({
                 apiId: process.env.TELEGRAM_API_ID!,

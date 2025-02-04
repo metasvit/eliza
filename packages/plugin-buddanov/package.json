@@ -20,7 +20,8 @@
     ],
     "dependencies": {
         "@elizaos/core": "workspace:*",
-        "telegram": "^2.26.8"
+        "telegram": "^2.26.8",
+        "puppeteer": "^21.0.0"
     },
     "devDependencies": {
         "tsup": "8.3.5"
