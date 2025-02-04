@@ -26,6 +26,7 @@ If the fundPortfolio is empty, return empty string
 - Add ETH exposure %
 - Make it engaging and professional
 - Use emojis wisely
+- Add tag to GMXBTCapital
 
 # Format: Generate a single tweet text string that includes key portfolio metrics and insights
 
