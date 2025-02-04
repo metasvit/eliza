@@ -29,18 +29,6 @@ If the scarlettResponse is empty, return empty string
 - Do not add any other text, just the output
 
 # Format: Generate a single tweet text string that includes pros and cons of the analyzed coin
-
-Example output format:
-
-🔹 Name: *coin name*
-🔹 MC: $4.6K | Price: $0.000005
-🔹 Liquidity: $8.4K | Holders: 281
-🚩 Red Flags:
-Low volume: $358 (24h)
-Top holder (Raydium LP): 92.4M tokens
-Only 3 traders in 24h
-
-📉 Verdict: Illiquid, no growth, high risk—avoid. 🚫
 `;
 
 interface GURResponse {
@@ -164,14 +152,64 @@ export default {
                         };
                         state.scarlettAnalyses.push(analysis);
 
-                        // Log the result
                         console.log(`✅ Analysis complete for ${address}`);
                         console.log(`Response: ${result.scarlettResponse.substring(0, 100)}...`);
 
-                        // Send intermediate update to user
-                        callback?.({
-                            text: `Analysis for ${address}:\n${result.scarlettResponse}`,
+                        // Post to Twitter immediately
+                        console.log("🐦 Attempting to post to Twitter...");
+                        console.log("Message source:", message.content.source);
+
+                        const tClient = runtime.clients?.twitter.client;
+                        const twitterPostClient = runtime.clients?.twitter.post;
+
+                        console.log("Twitter clients status:", {
+                            hasClient: !!tClient,
+                            hasPostClient: !!twitterPostClient
                         });
+
+                        if (!tClient || !twitterPostClient) {
+                            console.log("❌ Twitter client not found");
+                            continue;
+                        }
+
+                        try {
+                            console.log("🔄 Preparing tweet content...");
+                            console.log("Runtime agent:", runtime.agent);
+
+                            // Create tweet text
+                            const tweetContent = `Analysis for ${address}:\n${result.scarlettResponse}`;
+
+                            // Generate tweet text with length limit
+                            const tweetText = await generateText({
+                                runtime,
+                                context: tweetContent,  // Pass string directly instead of object
+                                modelClass: ModelClass.MEDIUM,
+                            });
+
+                            console.log("📝 Generated tweet text:", tweetText);
+
+                            // Post to Twitter
+                            console.log("🚀 Sending tweet...");
+                            await tClient.twitterClient.sendTweet(
+                                tweetText.length > 280 ? tweetText.slice(0, 277) + "..." : tweetText
+                            );
+
+                            console.log("✅ Tweet posted successfully!");
+
+                            callback?.({
+                                text: `Analysis for ${address} posted to Twitter:\n${tweetText}`,
+                            });
+                        } catch (error) {
+                            console.error("❌ Twitter API Error:", error);
+                            console.error("Error details:", {
+                                name: error.name,
+                                message: error.message,
+                                stack: error.stack
+                            });
+                            callback?.({
+                                text: `Failed to post tweet for ${address}: ${error.message}`,
+                            });
+                        }
 
                         // Wait random time between requests
                         const delay = getRandomDelay(10, 30);
@@ -182,7 +220,7 @@ export default {
                     }
                 } catch (error) {
                     console.error(`Error analyzing ${address}:`, error);
-                    continue; // Continue with next address even if one fails
+                    continue;
                 }
             }
 
@@ -196,53 +234,6 @@ export default {
                 callback?.({
                     text: summary,
                 });
-
-                // If it's a direct message, proceed with Twitter posting
-                if (message.content.source === "direct") {
-                    const tClient = runtime.clients?.twitter.client;
-                    const twitterPostClient = runtime.clients?.twitter.post;
-
-                    if (!state) {
-                        state = (await runtime.composeState(message)) as State;
-                    } else {
-                        state = await runtime.updateRecentMessageState(state);
-                    }
-
-                    const tweetText = await generateText({
-                        runtime,
-                        context: scarlettPostContext,
-                        modelClass: ModelClass.MEDIUM,
-                    });
-
-                    console.log("🔍 Tweet text:", tweetText);
-
-                    if(!tClient || !twitterPostClient){
-                        callback?.({
-                            text: "Twitter client not found",
-                        });
-                        return false;
-                    }
-
-                    try {
-                        // Use the Twitter client directly
-                        await tClient.twitterClient.sendTweet(
-                            tweetText.length > 280 ? tweetText.slice(0, 277) + "..." : tweetText
-                        );
-
-                        callback?.({
-                            text: tweetText,
-                        });
-                    } catch (error) {
-                        console.error("Twitter API Error:", error);
-                        callback?.({
-                            text: `Failed to post tweet: ${error.message}`,
-                        });
-                    }
-                } else {
-                    callback?.({
-                        text: "Sorry, can't post this to twitter",
-                    });
-                }
 
                 return true;
             }
