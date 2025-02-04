@@ -53,6 +53,15 @@ interface ScrapedData {
     addresses: string[];
 }
 
+interface ScarlettAnalysis {
+    address: string;
+    response: string;
+}
+
+function getRandomDelay(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1) + min) * 1000; // Convert to milliseconds
+}
+
 export default {
     name: "ANALYZE_COIN",
     similes: ["ANALYZE", "HASH", "COIN", "ANALYZE COIN", "ANALYZE TOKEN", "ANALYZE HASH"],
@@ -108,7 +117,8 @@ export default {
                     // Match the exact format including escaped quotes
                     const regex = /contractAddress\\\":\\\"([A-Za-z0-9]{32,44})\\/g;
                     let match;
-                    while ((match = regex.exec(elementContent)) !== null && addresses.length < 10) {
+                    /////// CHANGE addresses.length to get more or less addresses
+                    while ((match = regex.exec(elementContent)) !== null && addresses.length < 3) {
                         console.log("Found address:", match[1]);
                         addresses.push(match[1]);
                     }
@@ -127,6 +137,7 @@ export default {
 
             // Store scraped data in state for later use
             state.scrapedAddresses = extractedData;
+            state.scarlettAnalyses = []; // Initialize analyses array
 
             // Initialize TelegramHashAnalyzer with env variables
             const analyzer = new TelegramHashAnalyzer({
@@ -137,23 +148,57 @@ export default {
                 threadId: Number(process.env.TELEGRAM_THREAD_ID!),
             });
 
-            // Analyze the message
-            const result = await analyzer.analyzeHash(message.content.text);
+            // Process each address sequentially
+            for (const address of extractedData) {
+                console.log(`🔄 Processing address: ${address}`);
 
-            if (result.status === 'success' && result.scarlettResponse) {
+                try {
+                    // Analyze the current address
+                    const result = await analyzer.analyzeHash(`analyze ${address}`);
+
+                    if (result.status === 'success' && result.scarlettResponse) {
+                        // Store the analysis
+                        const analysis: ScarlettAnalysis = {
+                            address: address,
+                            response: result.scarlettResponse
+                        };
+                        state.scarlettAnalyses.push(analysis);
+
+                        // Log the result
+                        console.log(`✅ Analysis complete for ${address}`);
+                        console.log(`Response: ${result.scarlettResponse.substring(0, 100)}...`);
+
+                        // Send intermediate update to user
+                        callback?.({
+                            text: `Analysis for ${address}:\n${result.scarlettResponse}`,
+                        });
+
+                        // Wait random time between requests
+                        const delay = getRandomDelay(10, 30);
+                        console.log(`⏳ Waiting ${delay/1000} seconds before next request...`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    } else {
+                        console.log(`❌ Failed to analyze ${address}: ${result.error || 'No response'}`);
+                    }
+                } catch (error) {
+                    console.error(`Error analyzing ${address}:`, error);
+                    continue; // Continue with next address even if one fails
+                }
+            }
+
+            // After all analyses are complete, generate summary
+            if (state.scarlettAnalyses.length > 0) {
+                const summary = `📊 Analysis Complete\n\nProcessed ${state.scarlettAnalyses.length} addresses:\n` +
+                    state.scarlettAnalyses.map((analysis, index) =>
+                        `\n${index + 1}. Address: ${analysis.address}\n${analysis.response}\n`
+                    ).join('\n');
+
                 callback?.({
-                    text: result.scarlettResponse,
+                    text: summary,
                 });
 
-                state.scarlettResponse = result.scarlettResponse;
-
-                const scarlettPostContext = composeContext({
-                    state,
-                    template: scarlettPostTemplate,
-                });
-
-
-                if(message.content.source === "direct") {
+                // If it's a direct message, proceed with Twitter posting
+                if (message.content.source === "direct") {
                     const tClient = runtime.clients?.twitter.client;
                     const twitterPostClient = runtime.clients?.twitter.post;
 
@@ -200,25 +245,17 @@ export default {
                 }
 
                 return true;
-            } else if (result.status === 'error') {
-                callback?.({
-                    text: `❌ Error: ${result.error}`,
-                });
-            } else {
-                callback?.({
-                    text: "❌ No response received from the analysis service.",
-                });
             }
 
+            return false;
         } catch (error) {
             elizaLogger.error("Error in Hash Analyze info handler:", error);
             callback?.({
                 text: "❌ Sorry, I couldn't process your request at the moment.",
                 error: error
             });
+            return false;
         }
-
-        return false;
     },
     examples: [
         [

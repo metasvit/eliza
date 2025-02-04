@@ -22,23 +22,24 @@ import fs from 'fs';
         const extractedData = await page.evaluate(() => {
             const elements = document.getElementsByClassName('__variable_e081fc __className_0dc517 font-sans text-text-primary antialiased bg-primary');
             const elementContent = Array.from(elements).map(element => element.textContent?.trim() || '')[0];
-            
+
             const addresses: string[] = [];
             if (elementContent) {
                 // Match the exact format including escaped quotes
                 const regex = /contractAddress\\\":\\\"([A-Za-z0-9]{32,44})\\/g;
                 let match;
-                while ((match = regex.exec(elementContent)) !== null && addresses.length < 10) {
+                /////// CHANGE addresses.length to get more or less addresses
+                while ((match = regex.exec(elementContent)) !== null && addresses.length < 3) {
                     addresses.push(match[1]);
                 }
             }
-            
+
             return addresses;
         });
 
         if (extractedData.length === 10) {
             console.log(`Found first ${extractedData.length} contract addresses:`, extractedData);
-            
+
             const outputData = {
                 addresses: extractedData
             };
@@ -54,4 +55,4 @@ import fs from 'fs';
         // Close the browser
         await browser.close();
     }
-})(); 
+})();
