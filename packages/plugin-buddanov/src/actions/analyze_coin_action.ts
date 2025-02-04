@@ -29,6 +29,15 @@ If the scarlettResponse is empty, return empty string
 - Do not add any other text, just the output
 
 # Format: Generate a single tweet text string that includes pros and cons of the analyzed coin
+
+🔹 Name: *coin name*
+🔹 MC: $4.6K | Price: $0.000005
+🔹 Liquidity: $8.4K | Holders: 281
+🚩 Red Flags:
+Low volume: $358 (24h)
+Top holder (Raydium LP): 92.4M tokens
+Only 3 traders in 24h
+📉 Verdict: Illiquid, no growth, high risk—avoid. 🚫
 `;
 
 interface GURResponse {
@@ -50,6 +59,11 @@ function getRandomDelay(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1) + min) * 1000; // Convert to milliseconds
 }
 
+interface BuddanovState extends State {
+    scrapedAddresses: string[];
+    scarlettAnalyses: ScarlettAnalysis[];
+}
+
 export default {
     name: "ANALYZE_COIN",
     similes: ["ANALYZE", "HASH", "COIN", "ANALYZE COIN", "ANALYZE TOKEN", "ANALYZE HASH"],
@@ -59,7 +73,7 @@ export default {
     handler: async (
         runtime: IAgentRuntime,
         message: Memory,
-        state: State,
+        state: BuddanovState,
         _options: { [key: string]: unknown },
         callback?: HandlerCallback
     ) => {
@@ -77,12 +91,6 @@ export default {
 
             await page.goto(url, { waitUntil: 'networkidle0' });
             console.log("Page loaded successfully.");
-
-            await page.screenshot({
-                path: 'debug-screenshot.png',
-                fullPage: true
-            });
-            console.log("Screenshot saved as debug-screenshot.png");
 
             const extractedData = await page.evaluate(() => {
                 console.log("Starting page evaluation");
@@ -174,7 +182,7 @@ export default {
 
                         try {
                             console.log("🔄 Preparing tweet content...");
-                            console.log("Runtime agent:", runtime.agent);
+                            console.log("Runtime agent:", runtime.agentId);
 
                             // Create tweet text
                             const tweetContent = `Analysis for ${address}:\n${result.scarlettResponse}`;
@@ -223,7 +231,7 @@ export default {
                     continue;
                 }
             }
-
+            /*
             // After all analyses are complete, generate summary
             if (state.scarlettAnalyses.length > 0) {
                 const summary = `📊 Analysis Complete\n\nProcessed ${state.scarlettAnalyses.length} addresses:\n` +
@@ -235,10 +243,12 @@ export default {
                     text: summary,
                 });
 
+
                 return true;
             }
+            */
 
-            return false;
+            return true;
         } catch (error) {
             elizaLogger.error("Error in Hash Analyze info handler:", error);
             callback?.({
