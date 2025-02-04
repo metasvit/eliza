@@ -36,7 +36,7 @@ export class TwitterPostJobService
     }
 
     async runCron(): Promise<void> {
-        cron.schedule("0 8 * * *", async () => {
+        cron.schedule("0 8-22/2 * * *", async () => {
             elizaLogger.log(
                 "Run updatePortfolioTweet at",
                 new Date().toUTCString()
