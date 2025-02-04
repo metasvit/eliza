@@ -55,11 +55,15 @@ interface ScarlettAnalysis {
     response: string;
 }
 
+interface ThreadState {
+    threadStartId?: string;
+}
+
 function getRandomDelay(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1) + min) * 1000; // Convert to milliseconds
 }
 
-interface BuddanovState extends State {
+interface ExtendedState extends State {
     scrapedAddresses: string[];
     scarlettAnalyses: ScarlettAnalysis[];
 }
@@ -73,10 +77,11 @@ export default {
     handler: async (
         runtime: IAgentRuntime,
         message: Memory,
-        state: BuddanovState,
+        state: ExtendedState,
         _options: { [key: string]: unknown },
         callback?: HandlerCallback
     ) => {
+        const typedState = state as ExtendedState;
         elizaLogger.log("Starting hash analyze info handler...");
 
         try {
@@ -131,34 +136,56 @@ export default {
 
             await browser.close();
 
-            // Store scraped data in state for later use
-            state.scrapedAddresses = extractedData;
-            state.scarlettAnalyses = []; // Initialize analyses array
+            // Store scraped data and initialize thread state
+            typedState.scrapedAddresses = extractedData;
+            typedState.scarlettAnalyses = [];
+            const threadState: ThreadState = {};
 
-            // Initialize TelegramHashAnalyzer with env variables
-            const analyzer = new TelegramHashAnalyzer({
-                apiId: process.env.TELEGRAM_API_ID!,
-                apiHash: process.env.TELEGRAM_API_HASH!,
-                phoneNumber: process.env.TELEGRAM_PHONE_NUMBER!,
-                chatId: Number(process.env.TELEGRAM_CHAT_ID!),
-                threadId: Number(process.env.TELEGRAM_THREAD_ID!),
-            });
+            // Create initial thread tweet
+            const tClient = runtime.clients?.twitter.client;
+            const twitterPostClient = runtime.clients?.twitter.post;
 
-            // Process each address sequentially
-            for (const address of extractedData) {
-                console.log(`🔄 Processing address: ${address}`);
+            if (!tClient || !twitterPostClient) {
+                console.log("❌ Twitter client not found");
+                return false;
+            }
 
-                try {
-                    // Analyze the current address
-                    const result = await analyzer.analyzeHash(`analyze ${address}`);
+            try {
+                console.log("🚀 Creating thread starter tweet...");
+                const timestamp = new Date().toLocaleTimeString();
+                const starterTweetResponse = await tClient.twitterClient.sendTweet(
+                    `🔍 ${timestamp} - Starting fresh crypto analysis! Let's examine some interesting tokens... #CryptoAnalysis`
+                );
 
-                    if (result.status === 'success' && result.scarlettResponse) {
-                        // Store the analysis
-                        const analysis: ScarlettAnalysis = {
-                            address: address,
-                            response: result.scarlettResponse
-                        };
-                        state.scarlettAnalyses.push(analysis);
+                // Get the tweet ID from response
+                const starterTweetId = starterTweetResponse?.data?.id_str || starterTweetResponse?.data?.id;
+                if (!starterTweetId) {
+                    throw new Error("Failed to get starter tweet ID");
+                }
+
+                threadState.threadStartId = starterTweetId;
+                console.log("✅ Thread started with ID:", threadState.threadStartId);
+
+                // Initialize analyzer and process addresses
+                const analyzer = new TelegramHashAnalyzer({
+                    apiId: process.env.TELEGRAM_API_ID!,
+                    apiHash: process.env.TELEGRAM_API_HASH!,
+                    phoneNumber: process.env.TELEGRAM_PHONE_NUMBER!,
+                    chatId: Number(process.env.TELEGRAM_CHAT_ID!),
+                    threadId: Number(process.env.TELEGRAM_THREAD_ID!),
+                });
+
+                // Process each address
+                for (const address of extractedData) {
+                    try {
+                        const result = await analyzer.analyzeHash(`analyze ${address}`);
+
+                        if (result.status === 'success' && result.scarlettResponse) {
+                            const analysis: ScarlettAnalysis = {
+                                address: address,
+                                response: result.scarlettResponse
+                            };
+                            typedState.scarlettAnalyses.push(analysis);
 
                         console.log(`✅ Analysis complete for ${address}`);
                         console.log(`Response: ${result.scarlettResponse.substring(0, 100)}...`);
@@ -186,18 +213,13 @@ export default {
 
                             // Create tweet text
                             const tweetContent = `Analysis for ${address}:\n${result.scarlettResponse}`;
-
-                            // Generate tweet text with length limit
                             const tweetText = await generateText({
                                 runtime,
-                                context: tweetContent,  // Pass string directly instead of object
+                                context: tweetContent,
                                 modelClass: ModelClass.MEDIUM,
                             });
 
-                            console.log("📝 Generated tweet text:", tweetText);
-
-                            // Post to Twitter
-                            console.log("🚀 Sending tweet...");
+                            // Post as reply to thread
                             await tClient.twitterClient.sendTweet(
                                 tweetText.length > 280 ? tweetText.slice(0, 277) + "..." : tweetText
                             );
@@ -242,19 +264,17 @@ export default {
                 callback?.({
                     text: summary,
                 });
-
-
-                return true;
-            }
             */
 
-            return true;
+                return true;
+            } catch (error) {
+                console.error("❌ Twitter thread error:", error);
+                return false;
+            }
+
+            return false;
         } catch (error) {
-            elizaLogger.error("Error in Hash Analyze info handler:", error);
-            callback?.({
-                text: "❌ Sorry, I couldn't process your request at the moment.",
-                error: error
-            });
+            elizaLogger.error("Error in handler:", error);
             return false;
         }
     },
