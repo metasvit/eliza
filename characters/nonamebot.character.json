@@ -5,7 +5,9 @@
         "@elizaos/plugin-buddanov"
     ],
     "clients": [
-        "telegram"
+        "direct",
+        "telegram",
+        "twitter"
     ],
     "modelProvider": "openrouter",
     "settings": {

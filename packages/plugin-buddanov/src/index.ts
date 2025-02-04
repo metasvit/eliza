@@ -1,10 +1,10 @@
 import { Plugin } from "@elizaos/core";
-import  buddanovAction  from "./actions/analyze_coin_action"
+import analyze_coin_action from "./actions/analyze_coin_action";
 
 export const buddanovPlugin: Plugin = {
     name: "buddanov",
     description: "Buddanov integration plugin",
-    actions: [buddanovAction],
+    actions: [analyze_coin_action],
     evaluators: [],
     providers: [],
 };
