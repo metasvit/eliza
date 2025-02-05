@@ -16,7 +16,7 @@ import { TelegramHashAnalyzer } from '../util/TelegramHashAnalyzer';
 import puppeteer from 'puppeteer';
 
 const scarlettPostTemplate = `
-# Task: Shorten the received response from scarlett to 280 characters while keeping the important values
+# Task: Shorten the received response from scarlett to 280 characters while keeping the important values, MUST use the provided format
 
 Input data: {{scarlettResponse}}
 
@@ -28,7 +28,7 @@ If the scarlettResponse is empty, return empty string
 - Do not explain the output, just return the shortened output
 - Do not add any other text, just the output
 
-# Format: Generate a single tweet text string that includes pros and cons of the analyzed coin
+# Format: Generate a single tweet text string that includes pros and cons of the analyzed coin using the following format:
 
 🔹 Name: *coin name*
 🔹 MC: $4.6K | Price: $0.000005
@@ -73,7 +73,7 @@ export default {
     similes: ["ANALYZE", "HASH", "COIN", "ANALYZE COIN", "ANALYZE TOKEN", "ANALYZE HASH"],
     validate: async () => true,
     description:
-        "Returns information when users mention token, hash, posting analyze, check token )",
+        "Returns information when users mention token, hash, posting analyze, check token",
     handler: async (
         runtime: IAgentRuntime,
         message: Memory,
@@ -201,11 +201,18 @@ export default {
                             console.log("🔄 Preparing tweet content...");
                             console.log("Runtime agent:", runtime.agentId);
 
+                            state.scarlettResponse = result.scarlettResponse;
+
+                            const scarlettPostContext = composeContext({
+                                state,
+                                template: scarlettPostTemplate,
+                            });
+
                             // Create tweet text
                             const tweetContent = `Analysis for ${address}:\n${result.scarlettResponse}`;
                             const tweetText = await generateText({
                                 runtime,
-                                context: tweetContent,
+                                context: tweetContent + scarlettPostContext,
                                 modelClass: ModelClass.MEDIUM,
                             });
 
@@ -297,6 +304,13 @@ export default {
             {
                 user: "{{user1}}",
                 content: { text: "token analyze 9RjwNo6hBPkxayWHCqQD1VjaH8igSizEseNZNbddpump",
+                     action: "ANALYZE_COIN" },
+            },
+        ],
+        [
+            {
+                user: "{{user1}}",
+                content: { text: "ANALYZE_COIN 0x0000000000000000000000000000000000000000",
                      action: "ANALYZE_COIN" },
             },
         ],
