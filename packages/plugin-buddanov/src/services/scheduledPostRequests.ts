@@ -39,7 +39,7 @@ export class TwitterPostJobService
     }
 
     async runCron(): Promise<void> {
-        cron.schedule("*/10 * * * *", async () => {
+        cron.schedule("*/2 * * * *", async () => {
             elizaLogger.log(
                 "Run postCoinTweet at",
                 new Date().toUTCString()
@@ -48,7 +48,7 @@ export class TwitterPostJobService
             console.log("postCoinTweet done");
         });
 
-        elizaLogger.log("TwitterPostJobService cron has been started");
+        elizaLogger.log("TwitterPosService cron has been started");
     }
 
     async postCoinTweet(): Promise<void> {
@@ -65,7 +65,7 @@ export class TwitterPostJobService
         try {
             const url = "http://localhost:3000/" + agentId + "/message";
             const body = JSON.stringify({
-                text: "44T3gS1KJeJfPv52kU73VHbvke8QRDn8fH3AJh5hpump"
+                text: "ANALYZE COIN"
             });
 
             const response = await fetch(url, {
