@@ -136,10 +136,9 @@ export default {
 
             await browser.close();
 
-            // Store scraped data and initialize thread state
+            // Store scraped data
             typedState.scrapedAddresses = extractedData;
             typedState.scarlettAnalyses = [];
-            const threadState: ThreadState = {};
 
             // Create initial thread tweet
             const tClient = runtime.clients?.twitter.client;
@@ -156,15 +155,6 @@ export default {
                 const starterTweetResponse = await tClient.twitterClient.sendTweet(
                     `🔍 ${timestamp} - Starting fresh crypto analysis! Let's examine some interesting tokens... #CryptoAnalysis`
                 );
-
-                // Get the tweet ID from response
-                const starterTweetId = starterTweetResponse?.data?.id_str || starterTweetResponse?.data?.id;
-                if (!starterTweetId) {
-                    throw new Error("Failed to get starter tweet ID");
-                }
-
-                threadState.threadStartId = starterTweetId;
-                console.log("✅ Thread started with ID:", threadState.threadStartId);
 
                 // Initialize analyzer and process addresses
                 const analyzer = new TelegramHashAnalyzer({
