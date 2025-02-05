@@ -1,6 +1,6 @@
 import { Plugin } from "@elizaos/core";
-import  buddanovAction  from "./actions/analyze_coin_action"
-import { TwitterPostJobService } from "./services/api_sender";
+import  buddanovAction  from "./actions/analyzeCoin"
+import { TwitterPostJobService } from "./services/scheduledPostRequests";
 
 export const buddanovPlugin: Plugin = {
     name: "buddanov",

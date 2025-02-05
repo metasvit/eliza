@@ -12,7 +12,7 @@ import {
     Content,
     generateText,
 } from "@elizaos/core";
-import { TelegramHashAnalyzer } from '../util/TelegramHashAnalyzer';
+import { TelegramHashAnalyzer } from '../util/agencyTg';
 import puppeteer from 'puppeteer';
 
 const scarlettPostTemplate = `
