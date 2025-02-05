@@ -243,18 +243,6 @@ export default {
                     continue;
                 }
             }
-            /*
-            // After all analyses are complete, generate summary
-            if (state.scarlettAnalyses.length > 0) {
-                const summary = `📊 Analysis Complete\n\nProcessed ${state.scarlettAnalyses.length} addresses:\n` +
-                    state.scarlettAnalyses.map((analysis, index) =>
-                        `\n${index + 1}. Address: ${analysis.address}\n${analysis.response}\n`
-                    ).join('\n');
-
-                callback?.({
-                    text: summary,
-                });
-            */
 
                 return true;
             } catch (error) {
