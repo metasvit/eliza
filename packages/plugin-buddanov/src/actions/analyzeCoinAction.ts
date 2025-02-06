@@ -7,12 +7,10 @@ import {
     HandlerCallback,
     elizaLogger,
     composeContext,
-    generateObject,
     ModelClass,
-    Content,
     generateText,
 } from "@elizaos/core";
-import { TelegramHashAnalyzer } from '../util/TelegramHashAnalyzer';
+import { TelegramHashAnalyzer } from '../util/telegramCoinAnalyzer';
 import puppeteer from 'puppeteer';
 
 const scarlettPostTemplate = `
@@ -20,44 +18,37 @@ const scarlettPostTemplate = `
 
 Input data: {{scarlettResponse}}
 
-If the scarlettResponse is empty, return empty string
 {{agentName}} shouldn't use IGNORE.
 
 # Requirements:
-- Keep it under 280 characters
 - Do not explain the output, just return the shortened output
 - Do not add any other text, just the output
+- ALL OUR POSTS MUST BE 279 characters or less
+- If length is less than 279 characters, you can add more info from scarlettResponse
+
+
 
 # Format: Generate a single tweet text string that includes pros and cons of the analyzed coin using the following format:
 
-🔹 Name: *coin name*
-🔹 MC: $4.6K | Price: $0.000005
-🔹 Liquidity: $8.4K | Holders: 281
-🚩 Red Flags:
-Low volume: $358 (24h)
-Top holder (Raydium LP): 92.4M tokens
-Only 3 traders in 24h
-📉 Verdict: Illiquid, no growth, high risk—avoid. 🚫
+💰Name: *coin name*
+ MC: $4.6K | Price: $0.000005
+⭐️Pros:
+- $91K liquidity in Raydium
+- 3,635 holders in 75 days
+- 40 active wallets in 24h
+
+🥶Cons:
+- $6.1K volume in 24h
+- Price down 13.4% in 24h
+- Scattered liquidity
 `;
 
-interface GURResponse {
-    formatted_message: string;    // The formatted message from the API
-    scarlett_response: string;    // The response from Buddanov
-    status: string;              // Status of the request (e.g., "Message sent successfully")
-}
-
-interface ScrapedData {
-    addresses: string[];
-}
 
 interface ScarlettAnalysis {
     address: string;
     response: string;
 }
 
-interface ThreadState {
-    threadStartId?: string;
-}
 
 function getRandomDelay(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1) + min) * 1000; // Convert to milliseconds
@@ -119,7 +110,7 @@ export default {
                     const regex = /contractAddress\\\":\\\"([A-Za-z0-9]{32,44})\\/g;
                     let match;
                     /////// CHANGE addresses.length to get more or less addresses
-                    while ((match = regex.exec(elementContent)) !== null && addresses.length < 3) {
+                    while ((match = regex.exec(elementContent)) !== null && addresses.length < 10) {
                         console.log("Found address:", match[1]);
                         addresses.push(match[1]);
                     }
@@ -213,26 +204,18 @@ export default {
                             const tweetText = await generateText({
                                 runtime,
                                 context: tweetContent + scarlettPostContext,
-                                modelClass: ModelClass.MEDIUM,
+                                modelClass: ModelClass.SMALL,
                             });
 
-                            // Post as reply to thread
-                            await tClient.twitterClient.sendTweet(
-                                tweetText.length > 280 ? tweetText.slice(0, 277) + "..." : tweetText
-                            );
-
-                            console.log("✅ Tweet posted successfully!");
+                            // Post new tweets from AgentScarlett responces
+                            const tweetResponse = await tClient.twitterClient.sendTweet(tweetText);
+                            console.log("✅ Tweet posted successfully!", tweetText);
 
                             callback?.({
                                 text: `Analysis for ${address} posted to Twitter:\n${tweetText}`,
                             });
                         } catch (error) {
-                            console.error("❌ Twitter API Error:", error);
-                            console.error("Error details:", {
-                                name: error.name,
-                                message: error.message,
-                                stack: error.stack
-                            });
+                            console.error("❌ Error posting tweet:", error);
                             callback?.({
                                 text: `Failed to post tweet for ${address}: ${error.message}`,
                             });

@@ -1,7 +1,5 @@
 import { TelegramClient } from 'telegram';
 import { StringSession } from 'telegram/sessions';
-import input from 'input';
-import type { IAgentRuntime } from "@elizaos/core";
 import { composeContext } from "@elizaos/core";
 
 interface TelegramConfig {
@@ -12,20 +10,6 @@ interface TelegramConfig {
   threadId: number;
 }
 
-function validateEnvVariables() {
-  const required = [
-    'TELEGRAM_API_ID',
-    'TELEGRAM_API_HASH',
-    'TELEGRAM_PHONE_NUMBER',
-    'TELEGRAM_CHAT_ID',
-    'TELEGRAM_THREAD_ID'
-  ];
-
-  const missing = required.filter(key => !process.env[key]);
-  if (missing.length > 0) {
-    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
-  }
-}
 
 export class TelegramHashAnalyzer {
   private client: TelegramClient;
@@ -53,7 +37,6 @@ export class TelegramHashAnalyzer {
   private isValidHash(text: string): boolean {
     const hashPattern = /[A-Za-z0-9]{32,}/;
     return hashPattern.test(text);
-    console.log("log: isValidHash");
   }
 
   private formatMessage(messageText: string): string {
@@ -99,7 +82,6 @@ export class TelegramHashAnalyzer {
       console.log('🔧 Attempting to initialize Telegram client...');
       console.log(`📱 Using phone number: ${this.config.phoneNumber}`);
       console.log(`🆔 API ID: ${this.config.apiId}`);
-      /*console.log(`🔑 Session length: ${(this.client.session.save() as string).length} characters`);*/
 
       console.log('🔄 Connecting to Telegram servers...');
       await this.client.connect();
