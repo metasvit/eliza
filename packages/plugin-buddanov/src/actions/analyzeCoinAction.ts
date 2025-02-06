@@ -129,6 +129,26 @@ export default {
 
             // Store scraped data
             typedState.scrapedAddresses = extractedData;
+
+            // Make API call to retrieve tweets
+            const searchQuery = '#CryptoAnalysis';
+            const options = {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer AAAAAAAAAAAAAAAAAAAAAMMXywEAAAAA%2F6o9jZJXrbXSePK6soGUllRS7M8%3DH6xkfsqTVw85Wc2bVOALMPudu83LaS0WbYcLcV1bOR8uph8Hel`
+                }
+            };
+
+            fetch(`https://api.twitter.com/2/tweets/search/recent?query=${encodeURIComponent(searchQuery)}`, options)
+                .then(response => response.json())
+                .then(response => {
+                    console.log('Tweets retrieved:', response);
+                    // Process the retrieved tweets data as needed
+                })
+                .catch(err => {
+                    console.error('Error retrieving tweets:', err);
+                });
+
             typedState.scarlettAnalyses = [];
 
             // Create initial thread tweet
