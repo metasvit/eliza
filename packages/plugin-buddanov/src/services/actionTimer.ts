@@ -37,7 +37,7 @@ export class TwitterPostJobService
     }
 
     async runCron(): Promise<void> {
-        cron.schedule("45 10 * * *", async () => {
+        cron.schedule("*/1 * * * *", async () => {
             elizaLogger.log(
                 "Run action at",
                 new Date().toUTCString()
@@ -51,10 +51,12 @@ export class TwitterPostJobService
 
 
     async startActionTimer(): Promise<void> {
-
         console.log("Action call start");
 
-        const agentId = "12cd6578-9b43-0358-b775-39bf3fac8ed0";
+        const agentId = process.env.AGENT_ID;
+        if (!agentId) {
+            throw new Error("AGENT_ID environment variable is not set");
+        }
 
         console.log("agentId", agentId);
 
