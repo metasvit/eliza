@@ -1,11 +1,12 @@
 import { Plugin } from "@elizaos/core";
-import  buddanovAction  from "./actions/analyzeCoinAction"
+import  getCoinInfoAction  from "./actions/getCoinInfoAction"
+import  fundPostAction  from "./actions/fundPostAction"
 import { TwitterPostJobService } from "./services/actionTimer";
 
 export const buddanovPlugin: Plugin = {
     name: "buddanov",
     description: "Buddanov integration plugin",
-    actions: [buddanovAction],
+    actions: [fundPostAction, getCoinInfoAction],
     evaluators: [],
     providers: [new TwitterPostJobService()]
 };

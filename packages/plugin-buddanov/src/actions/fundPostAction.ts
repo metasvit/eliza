@@ -60,11 +60,11 @@ interface ExtendedState extends State {
 }
 
 export default {
-    name: "ANALYZE_COIN",
-    similes: ["ANALYZE", "HASH", "COIN", "ANALYZE COIN", "ANALYZE TOKEN", "ANALYZE HASH"],
+    name: "FUND_POST",
+    similes: ["FUND POST", "POST FUND", "FUND", "THREAD FUND"],
     validate: async () => true,
     description:
-        "Returns information when users mention token, hash, posting analyze, check token",
+        "Analyzes a set of addresses and posts the results to Twitter",
     handler: async (
         runtime: IAgentRuntime,
         message: Memory,
@@ -271,8 +271,8 @@ export default {
             {
                 user: "{{user1}}",
                 content: {
-                    text: "Tell me about this coin 9RjwNo6hBPkxayWHCqQD1VjaH8igSizEseNZNbddpump",
-                    action: "ANALYZE_COIN",
+                    text: "FUND_POST",
+                    action: "FUND_POST",
                 },
             },
         ],
@@ -280,8 +280,8 @@ export default {
             {
                 user: "{{user1}}",
                 content: {
-                    text: "what about this coin 9RjwNo6hBPkxayWHCqQD1VjaH8igSizEseNZNbddpump?",
-                    action: "ANALYZE_COIN",
+                    text: "I need to post a fund thread",
+                    action: "FUND_POST",
                 },
             },
         ],
@@ -289,8 +289,8 @@ export default {
             {
                 user: "{{user1}}",
                 content: {
-                    text: "analyze 9RjwNo6hBPkxayWHCqQD1VjaH8igSizEseNZNbddpump",
-                    action: "ANALYZE_COIN",
+                    text: "Make a fund post on twitter",
+                    action: "FUND_POST",
                 },
             },
         ],
@@ -298,23 +298,23 @@ export default {
             {
                 user: "{{user1}}",
                 content: {
-                    text: "9RjwNo6hBPkxayWHCqQD1VjaH8igSizEseNZNbddpump",
-                    action: "ANALYZE_COIN",
+                    text: "do a fund update post",
+                    action: "FUND_POST",
                 },
             },
         ],
         [
             {
                 user: "{{user1}}",
-                content: { text: "token analyze 9RjwNo6hBPkxayWHCqQD1VjaH8igSizEseNZNbddpump",
-                     action: "ANALYZE_COIN" },
+                content: { text: "post about fund",
+                     action: "FUND_POST" },
             },
         ],
         [
             {
                 user: "{{user1}}",
-                content: { text: "ANALYZE_COIN 0x0000000000000000000000000000000000000000",
-                     action: "ANALYZE_COIN" },
+                content: { text: "Let's update the fund info on twitter",
+                     action: "FUND_POST" },
             },
         ],
     ] as ActionExample[][],

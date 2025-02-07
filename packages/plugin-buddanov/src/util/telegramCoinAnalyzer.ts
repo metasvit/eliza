@@ -1,6 +1,7 @@
 import { TelegramClient } from 'telegram';
 import { StringSession } from 'telegram/sessions';
 import { composeContext } from "@elizaos/core";
+import { State } from "@elizaos/core";
 
 interface TelegramConfig {
   apiId: string;
@@ -22,7 +23,7 @@ export class TelegramHashAnalyzer {
     this.threadId = config.threadId;
 
     const stringSession = new StringSession(
-      '1AgAOMTQ5LjE1NC4xNjcuNDEBu6xZXuo6EhH0AsIbfXAvw76F84eg/fjY+BNw+lDPeElAr7EsvTZJ6OyI3MmCeaXL4a1dhRDbgQDMXFOhw4+56FpVpQrN6OACyhhtLJ3UTHS9HjgqbILsd2Tk77lMlSW109mixg9ADHhUW580HvGSSjymGXvPPQdq+kxCSrmvGEizNfGBZT6eoW7sMrG9P8GoPO3tqa8mllqPuWh//EAci+eWPz+xLP/QBtVgolkaB16YYDaBEvUOGKl9jVhIGQ5ZqYOeIz17q+CTgmNIBp1dkb3JIwa27Y4iDGReQ8uym9qaxe8KeEN2y+hbjOtffI23yMrN4y0RArsAHUYE9B4nPuQ='
+      '1AgAOMTQ5LjE1NC4xNjcuNTABu1zwrnP5x9AYlXRYxsJMaZOInZ+bSJpxpYbkp8RZ7mZMZZniAYRWJTd2zNWMGI40q6Il39VEB4hooHwS/n8aieMbJzd9vBeT+WiICkQvhVgNfs2dFihLBRoF7qeJ+XbySdMm7uU46vn37KCpG1sfu2xS0O0gt+GelHEQBSRXBlFSPdtY+Zr3yktoWhe52qKPdPKem3Pqs2qMFnK+KMv0r9o0UMoRfHgFYh8emJHbiYXYV2MLIbFDWVkmg4CwdObaRlpEzkiVRcMqAiL/OU3yUUZsi7/5dSyupYL7BJyK4z6RUAa3oYIv/Zb4B1b39nWFglpvHGkukpNMoUg2js0U0vE='
     );
 
     this.client = new TelegramClient(
@@ -34,16 +35,16 @@ export class TelegramHashAnalyzer {
     console.log("log: constructor");
   }
 
-  private isValidHash(text: string): boolean {
+  private extractHash(text: string): string | null {
     const hashPattern = /[A-Za-z0-9]{32,}/;
-    return hashPattern.test(text);
+    const match = text.match(hashPattern);
+    return match ? match[0] : null;
   }
 
   private formatMessage(messageText: string): string {
     const template = "@AgentScarlettBot analyze {{hash}}";
-    const state = { hash: messageText } as any;
+    const state = { hash: messageText } as unknown as State;
     const formatted = composeContext({ state, template });
-
     return formatted !== "@AgentScarlettBot analyze " ? formatted : messageText;
   }
 
@@ -130,14 +131,15 @@ export class TelegramHashAnalyzer {
         await this.client.connect();
       }
 
-      if (!this.isValidHash(messageText)) {
+      const hash = this.extractHash(messageText);
+      if (!hash) {
         return {
           status: 'error',
           error: 'Message does not contain a valid hash pattern',
         };
       }
 
-      const formattedMessage = this.formatMessage(messageText);
+      const formattedMessage = this.formatMessage(hash);
       const sentMessage = await this.client.sendMessage(this.chatId, {
         message: formattedMessage,
         replyTo: this.threadId,
