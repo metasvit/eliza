@@ -1,7 +1,7 @@
 import { parseBooleanFromText, IAgentRuntime } from "@elizaos/core";
 import { z, ZodError } from "zod";
 
-export const DEFAULT_MAX_TWEET_LENGTH = 280;
+export const DEFAULT_MAX_TWEET_LENGTH = 25000;
 
 const twitterUsernameSchema = z
     .string()

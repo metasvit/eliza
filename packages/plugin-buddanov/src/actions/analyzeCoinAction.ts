@@ -14,33 +14,27 @@ import { TelegramHashAnalyzer } from '../util/telegramCoinAnalyzer';
 import puppeteer from 'puppeteer';
 
 const scarlettPostTemplate = `
-# Task: Shorten the received response from scarlett to 280 characters while keeping the important values, MUST use the provided format
+# Task: Read all data from scarlettResponses and create post for twitter based on the data.
 
-Input data: {{scarlettResponse}}
+Input data: {{scarlettResponses}}
 
 {{agentName}} shouldn't use IGNORE.
 
 # Requirements:
-- Do not explain the output, just return the shortened output
-- Do not add any other text, just the output
-- ALL OUR POSTS MUST BE 279 characters or less
-- If length is less than 279 characters, you can add more info from scarlettResponse
+- Read all data from scarlettResponses.
+- Post must include some predictions based on the data (hold, sell, buy, dump, rug, etc).
 
 
+# Format: Generate a single tweet text string that includes predictions and explanation about our predictions.
 
-# Format: Generate a single tweet text string that includes pros and cons of the analyzed coin using the following format:
+📊 2025 Crypto Market Trends
 
-💰Name: *coin name*
- MC: $4.6K | Price: $0.000005
-⭐️Pros:
-- $91K liquidity in Raydium
-- 3,635 holders in 75 days
-- 40 active wallets in 24h
+1️⃣ Low-cap gems ($100M-$500M MC) like $AIXBT show strong growth potential but come with high volatility. 📈
+2️⃣ Liquidity fragmentation across DEXs remains a challenge, limiting smooth trading. 🌊
+3️⃣ Active wallets & volume spikes indicate real engagement—watch for consistent holder growth! 🚀
+4️⃣ Post-ATH downtrends are common; smart entries matter more than hype. 🔍
 
-🥶Cons:
-- $6.1K volume in 24h
-- Price down 13.4% in 24h
-- Scattered liquidity
+🔮 Prediction: Utility-driven alts will shine, but liquidity & stability will separate winners from hype. #Crypto #Altcoins
 `;
 
 
@@ -110,7 +104,7 @@ export default {
                     const regex = /contractAddress\\\":\\\"([A-Za-z0-9]{32,44})\\/g;
                     let match;
                     /////// CHANGE addresses.length to get more or less addresses
-                    while ((match = regex.exec(elementContent)) !== null && addresses.length < 10) {
+                    while ((match = regex.exec(elementContent)) !== null && addresses.length < 2) {
                         console.log("Found address:", match[1]);
                         addresses.push(match[1]);
                     }
@@ -127,46 +121,8 @@ export default {
 
             await browser.close();
 
-            // Store scraped data
-            typedState.scrapedAddresses = extractedData;
-
-            // Make API call to retrieve tweets
-            const searchQuery = '#CryptoAnalysis';
-            const options = {
-                method: 'GET',
-                headers: {
-                    Authorization: `Bearer AAAAAAAAAAAAAAAAAAAAAMMXywEAAAAA%2F6o9jZJXrbXSePK6soGUllRS7M8%3DH6xkfsqTVw85Wc2bVOALMPudu83LaS0WbYcLcV1bOR8uph8Hel`
-                }
-            };
-
-            fetch(`https://api.twitter.com/2/tweets/search/recent?query=${encodeURIComponent(searchQuery)}`, options)
-                .then(response => response.json())
-                .then(response => {
-                    console.log('Tweets retrieved:', response);
-                    // Process the retrieved tweets data as needed
-                })
-                .catch(err => {
-                    console.error('Error retrieving tweets:', err);
-                });
-
-            typedState.scarlettAnalyses = [];
-
-            // Create initial thread tweet
-            const tClient = runtime.clients?.twitter.client;
-            const twitterPostClient = runtime.clients?.twitter.post;
-
-            if (!tClient || !twitterPostClient) {
-                console.log("❌ Twitter client not found");
-                return false;
-            }
 
             try {
-                console.log("🚀 Creating thread starter tweet...");
-                const timestamp = new Date().toLocaleTimeString();
-                const starterTweetResponse = await tClient.twitterClient.sendTweet(
-                    `🔍 ${timestamp} - Starting fresh crypto analysis! Let's examine some interesting tokens... #CryptoAnalysis`
-                );
-
                 // Initialize analyzer and process addresses
                 const analyzer = new TelegramHashAnalyzer({
                     apiId: process.env.TELEGRAM_API_ID!,
@@ -176,95 +132,77 @@ export default {
                     threadId: Number(process.env.TELEGRAM_THREAD_ID!),
                 });
 
+                // Structure to store Scarlett responses
+
+                const scarlettResponses = [];
+                const tClient = runtime.clients?.twitter.client;
                 // Process each address
                 for (const address of extractedData) {
                     try {
                         const result = await analyzer.analyzeHash(`analyze ${address}`);
 
                         if (result.status === 'success' && result.scarlettResponse) {
-                            const analysis: ScarlettAnalysis = {
-                                address: address,
-                                response: result.scarlettResponse
-                            };
-                            typedState.scarlettAnalyses.push(analysis);
+                            scarlettResponses.push(result.scarlettResponse);
 
-                        console.log(`✅ Analysis complete for ${address}`);
-                        console.log(`Response: ${result.scarlettResponse.substring(0, 100)}...`);
-
-                        // Post to Twitter immediately
-                        console.log("🐦 Attempting to post to Twitter...");
-                        console.log("Message source:", message.content.source);
-
-                        const tClient = runtime.clients?.twitter.client;
-                        const twitterPostClient = runtime.clients?.twitter.post;
-
-                        console.log("Twitter clients status:", {
-                            hasClient: !!tClient,
-                            hasPostClient: !!twitterPostClient
-                        });
-
-                        if (!tClient || !twitterPostClient) {
-                            console.log("❌ Twitter client not found");
-                            continue;
+                            console.log(`✅ Analysis complete for ${address}`);
+                        } else {
+                            console.log(`❌ Failed to analyze ${address}: ${result.error || 'No response'}`);
                         }
-
-                        try {
-                            console.log("🔄 Preparing tweet content...");
-                            console.log("Runtime agent:", runtime.agentId);
-
-                            state.scarlettResponse = result.scarlettResponse;
-
-                            const scarlettPostContext = composeContext({
-                                state,
-                                template: scarlettPostTemplate,
-                            });
-
-                            // Create tweet text
-                            const tweetContent = `Analysis for ${address}:\n${result.scarlettResponse}`;
-                            const tweetText = await generateText({
-                                runtime,
-                                context: tweetContent + scarlettPostContext,
-                                modelClass: ModelClass.SMALL,
-                            });
-
-                            // Post new tweets from AgentScarlett responces
-                            const tweetResponse = await tClient.twitterClient.sendTweet(tweetText);
-                            console.log("✅ Tweet posted successfully!", tweetText);
-
-                            callback?.({
-                                text: `Analysis for ${address} posted to Twitter:\n${tweetText}`,
-                            });
-                        } catch (error) {
-                            console.error("❌ Error posting tweet:", error);
-                            callback?.({
-                                text: `Failed to post tweet for ${address}: ${error.message}`,
-                            });
-                        }
-
-                        // Wait random time between requests
-                        const delay = getRandomDelay(10, 30);
-                        console.log(`⏳ Waiting ${delay/1000} seconds before next request...`);
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                    } else {
-                        console.log(`❌ Failed to analyze ${address}: ${result.error || 'No response'}`);
+                    } catch (error) {
+                        console.error(`Error analyzing ${address}:`, error);
+                        continue;
                     }
-                } catch (error) {
-                    console.error(`Error analyzing ${address}:`, error);
-                    continue;
                 }
+
+                console.log("🚀 Creating thread...");
+
+                const tweetText = await generateText({
+                    runtime,
+                    context: scarlettPostTemplate,
+                    modelClass: ModelClass.SMALL,
+                });
+
+                const twitterReply = await tClient.twitterClient.sendNoteTweet(tweetText);
+                let tempID = twitterReply.data.notetweet_create.tweet_results.result.rest_id;
+                for (const response of scarlettResponses) {
+                    const ownPosts = await tClient.fetchOwnPosts(1);
+                    console.log(ownPosts.map(post => ({
+                        ...post,
+                        text: post.text?.slice(0, 30)
+                    })));
+                    if (ownPosts.length > 0) {
+                        console.log(`Before update: tempID = ${tempID}`);
+                        console.log(ownPosts[0].id);
+
+
+                        console.log(tempID);
+                        tempID = ownPosts[0].id;
+                        console.log(`After update: tempID = ${tempID}`);
+                    } else {
+                        console.error("❌ No recent tweets found");
+                        return false;
+                    }
+
+                    const delay = getRandomDelay(10, 30);
+                    console.log(`⏳ Waiting ${delay/1000} seconds before next tweet...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+
+                    const immediateReply = await tClient.twitterClient.sendTweet("text for replies " + tempID, tempID);
+
+                }
+
             }
 
-                return true;
-            } catch (error) {
+            catch (error) {
                 console.error("❌ Twitter thread error:", error);
                 return false;
             }
-
             return false;
         } catch (error) {
             elizaLogger.error("Error in handler:", error);
             return false;
         }
+
     },
     examples: [
         [

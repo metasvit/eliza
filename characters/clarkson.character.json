@@ -1,10 +1,12 @@
 {
     "name": "jaremy clarkson",
-    "plugins": [],
+    "plugins": [
+        "@elizaos/plugin-buddanov"
+    ],
     "clients": [
-        "twitter",
+        "direct",
         "telegram",
-        "direct"
+        "twitter"
     ],
     "modelProvider": "openrouter",
     "settings": {

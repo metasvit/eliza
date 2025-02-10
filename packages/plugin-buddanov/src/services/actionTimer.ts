@@ -37,7 +37,7 @@ export class TwitterPostJobService
     }
 
     async runCron(): Promise<void> {
-        cron.schedule("45 10 * * *", async () => {
+        cron.schedule("17 1 * * *", async () => {
             elizaLogger.log(
                 "Run action at",
                 new Date().toUTCString()

@@ -22,7 +22,7 @@ export class TelegramHashAnalyzer {
     this.threadId = config.threadId;
 
     const stringSession = new StringSession(
-      '1AgAOMTQ5LjE1NC4xNjcuNDEBu6xZXuo6EhH0AsIbfXAvw76F84eg/fjY+BNw+lDPeElAr7EsvTZJ6OyI3MmCeaXL4a1dhRDbgQDMXFOhw4+56FpVpQrN6OACyhhtLJ3UTHS9HjgqbILsd2Tk77lMlSW109mixg9ADHhUW580HvGSSjymGXvPPQdq+kxCSrmvGEizNfGBZT6eoW7sMrG9P8GoPO3tqa8mllqPuWh//EAci+eWPz+xLP/QBtVgolkaB16YYDaBEvUOGKl9jVhIGQ5ZqYOeIz17q+CTgmNIBp1dkb3JIwa27Y4iDGReQ8uym9qaxe8KeEN2y+hbjOtffI23yMrN4y0RArsAHUYE9B4nPuQ='
+      '1AgAOMTQ5LjE1NC4xNjcuNDEBuw/bdAZ3EGYa0buEOHUQI22B0VJ8SxL2rZrblTuJnikTLqcgmJckxHRtBKgmRdWcoyBksJHp7Gj9ubiaWjlPXC+3Nwqv0xy1XI7j2YkamwXlnGYZvazfC65phra3oqdPmI5aH8jYp0TYGnOuTWR4UW2toPlFAHzwSypFhTswhN+N4ofNTnRb1CnaRwQy7zlqOxr7FxcZcw7vgGD0nehUYI816ZisKocnfF9d75ePUicn8u1h0eQQD4C1JXgsM2BTgaP04hlXCM0DCDAT3gXDfxrseN6SozPeoSpe09PkmpLJNe8PZHpVxl4SAT/eVYPYWipSu9LewDU7n5DpB35UV4c='
     );
 
     this.client = new TelegramClient(
