@@ -5,7 +5,11 @@
         "rootDir": "src",
         "types": [
             "node"
-        ]
+        ],
+        "module": "ES2022",
+        "moduleResolution": "bundler",
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true
     },
     "include": [
         "src/**/*.ts"
