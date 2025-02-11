@@ -48,13 +48,13 @@ export class TelegramHashAnalyzer {
     return formatted !== "@AgentScarlettBot analyze " ? formatted : messageText;
   }
 
-  private async getScarlettResponse(messageId: number, timeout: number = 30000): Promise<string | null> {
-    await new Promise(resolve => setTimeout(resolve, 10000));
+  private async getScarlettResponse(messageId: number, timeout: number = 150000): Promise<string | null> {
+    await new Promise(resolve => setTimeout(resolve, 50000));
     const startTime = Date.now();
 
     while (Date.now() - startTime < timeout) {
       const messages = await this.client.getMessages(this.chatId, {
-        limit: 5,
+        limit: 10,
         replyTo: this.threadId,
       });
 
@@ -63,12 +63,12 @@ export class TelegramHashAnalyzer {
           this.isUser(message.sender) &&
           message.sender.username === 'AgentScarlettBot' &&
           message.replyTo?.replyToMsgId === messageId &&
-          message.date * 1000 > startTime
+          message.date * 5000 > startTime
         ) {
           return message.text;
         }
       }
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 50000));
     }
     return null;
   }
@@ -140,25 +140,47 @@ export class TelegramHashAnalyzer {
       }
 
       const formattedMessage = this.formatMessage(hash);
-      const sentMessage = await this.client.sendMessage(this.chatId, {
-        message: formattedMessage,
-        replyTo: this.threadId,
-      });
+      let retryCount = 0;
+      const maxRetries = 3;
 
-      const response = await this.getScarlettResponse(sentMessage.id);
+      while (retryCount < maxRetries) {
+        try {
+          const sentMessage = await this.client.sendMessage(this.chatId, {
+            message: formattedMessage,
+            replyTo: this.threadId,
+          });
 
-      if (response) {
-        return {
-          status: 'success',
-          formattedMessage,
-          scarlettResponse: response,
-        };
-      } else {
-        return {
-          status: 'pending',
-          formattedMessage,
-        };
+          const response = await this.getScarlettResponse(sentMessage.id);
+
+          if (response) {
+            return {
+              status: 'success',
+              formattedMessage,
+              scarlettResponse: response,
+            };
+          }
+
+          retryCount++;
+          if (retryCount < maxRetries) {
+            console.log(`⚠️ No response received, attempt ${retryCount}/${maxRetries}`);
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            continue;
+          }
+        } catch (error) {
+          console.error(`⚠️ Error in attempt ${retryCount + 1}/${maxRetries}:`, error);
+          retryCount++;
+          if (retryCount < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            continue;
+          }
+        }
       }
+
+      return {
+        status: 'error',
+        error: 'Failed to get response after maximum retries',
+        formattedMessage,
+      };
     } catch (error) {
       console.error('⛔ Error during analysis:', error);
       return {
