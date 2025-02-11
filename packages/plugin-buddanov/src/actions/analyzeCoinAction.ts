@@ -104,7 +104,7 @@ export default {
                     const regex = /contractAddress\\\":\\\"([A-Za-z0-9]{32,44})\\/g;
                     let match;
                     /////// CHANGE addresses.length to get more or less addresses
-                    while ((match = regex.exec(elementContent)) !== null && addresses.length < 2) {
+                    while ((match = regex.exec(elementContent)) !== null && addresses.length < 3) {
                         console.log("Found address:", match[1]);
                         addresses.push(match[1]);
                     }
@@ -165,30 +165,27 @@ export default {
                 const twitterReply = await tClient.twitterClient.sendNoteTweet(tweetText);
                 let tempID = twitterReply.data.notetweet_create.tweet_results.result.rest_id;
                 for (const response of scarlettResponses) {
-                    const ownPosts = await tClient.fetchOwnPosts(1);
-                    console.log(ownPosts.map(post => ({
-                        ...post,
-                        text: post.text?.slice(0, 30)
-                    })));
+
+                    const immediateReply = await tClient.twitterClient.sendTweet("text for replies " + tempID, tempID);
+
+                    let ownPosts = await tClient.fetchOwnPosts(1);
                     if (ownPosts.length > 0) {
                         console.log(`Before update: tempID = ${tempID}`);
-                        console.log(ownPosts[0].id);
+                        console.log(ownPosts[1].id);
 
 
                         console.log(tempID);
-                        tempID = ownPosts[0].id;
+                        tempID = ownPosts[1].id;
                         console.log(`After update: tempID = ${tempID}`);
                     } else {
                         console.error("❌ No recent tweets found");
                         return false;
                     }
-
-                    const delay = getRandomDelay(10, 30);
-                    console.log(`⏳ Waiting ${delay/1000} seconds before next tweet...`);
-                    await new Promise(resolve => setTimeout(resolve, delay));
-
-                    const immediateReply = await tClient.twitterClient.sendTweet("text for replies " + tempID, tempID);
-
+                    if (scarlettResponses.indexOf(response) !== scarlettResponses.length - 1) {
+                        const delay = getRandomDelay(10, 30);
+                        console.log(`⏳ Waiting ${delay/1000} seconds before next tweet...`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    }
                 }
 
             }
