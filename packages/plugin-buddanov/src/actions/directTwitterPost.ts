@@ -13,9 +13,9 @@ import {
 
 export default {
     name: "DIRECT_TWITTER_POST",
-    similes: ["DIRECT TWITTER POST", "DIRECT TWEET", "DIRECT X POST", "POST DIRECTLY TO X", "POST DIRECTLY TO TWITTER"],
+    similes: ["DIRECT TWEET", "DIRECT TWITTER POST", "DIRECT X POST",  "POST DIRECTLY TO TWITTER", "POST DIRECTLY TO X"],
     validate: async () => true,
-    description: "Sends custom text directly to twitter",
+    description: "Sends custom text directly to twitter, send only the text between the quotes",
     handler: async (
         runtime: IAgentRuntime,
         message: Memory,
@@ -37,7 +37,7 @@ export default {
         const match = message.content.text.match(/"([^"]*)"/)
         const tweetText = match ? match[1] : message.content.text;
 
-        elizaLogger.log("Tweet text:", tweetText);
+        elizaLogger.log("Direct tweet text:", tweetText);
 
         // Check tweet length (standard tweet limit is 280 characters)
         if (tweetText.length <= 280) {
@@ -67,52 +67,65 @@ export default {
         [
             {
                 user: "{{user1}}",
-                content: { text: "You should tweet that" },
+                content: { text: '"This is important news" direct tweet' },
             },
             {
                 user: "{{agentName}}",
                 content: {
-                    text: "I'll post that as a tweet now.",
-                    action: "SEND_TWEET",
+                    text: "I'll post that as a direct tweet.",
+                    action: "DIRECT_TWITTER_POST",
                 },
             },
         ],
         [
             {
                 user: "{{user1}}",
-                content: { text: "Post this reply as a tweet" },
+                content: { text: '"Check this out!" direct twitter post' },
             },
             {
                 user: "{{agentName}}",
                 content: {
-                    text: "Sure, posting that right away.",
-                    action: "SEND_TWEET",
+                    text: "I'll share that as a direct post.",
+                    action: "DIRECT_TWITTER_POST",
                 },
             },
         ],
         [
             {
                 user: "{{user1}}",
-                content: { text: "Make a tweet about this" },
+                content: { text: '"Exciting update!" direct x post' },
             },
             {
                 user: "{{agentName}}",
                 content: {
-                    text: "On it, posting that tweet now.",
-                    action: "SEND_TWEET",
+                    text: "I'll post that directly to X.",
+                    action: "DIRECT_TWITTER_POST",
                 }
             },
         ],
         [
             {
                 user: "{{user1}}",
-                content: { text: "Send this to X" },
+                content: { text: '"Great news everyone!" post directly to twitter' },
             },
             {
                 user: "{{agentName}}",
                 content: {
-                    text: "Ok, I'll post that to X now.",
-                    action: "SEND_TWEET",
+                    text: "I'll post that directly to Twitter.",
+                    action: "DIRECT_TWITTER_POST",
+                },
+            },
+        ],
+        [
+            {
+                user: "{{user1}}",
+                content: { text: '"Important announcement:" post directly to x' },
+            },
+            {
+                user: "{{agentName}}",
+                content: {
+                    text: "I'll post that directly to X.",
+                    action: "DIRECT_TWITTER_POST",
                 },
             },
         ]
