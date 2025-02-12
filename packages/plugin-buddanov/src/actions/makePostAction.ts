@@ -45,8 +45,8 @@ Input data: {{previousResponse}}
 `;
 
 export default {
-    name: "SEND_TWEET",
-    similes: ["SEND TWEET", "TWEET", "TWEET POST", "POST TWEET", "SEND TO TWITTER", "SEND TO X", "X POST", "MAKE AN X POST"],
+    name: "MAKE_POST",
+    similes: ["MAKE POST", "POST", "TWEET POST", "POST TWEET", "SEND TO TWITTER", "SEND TO X", "X POST", "MAKE AN X POST"],
     validate: async () => true,
     description: "Sends previous agent reponse to twitter",
     handler: async (
@@ -68,10 +68,13 @@ export default {
         })));
         */
 
-        // Find the most recent coin analysis message
+        // Find the most recent message with a coin tag ($ANYCOIN format)
         const lastCoinAnalysis = recentMessages
             .filter(msg => msg.agentId === runtime.agentId)
-            .find(msg => msg.content.text.toLowerCase().startsWith("here's what i see for"));
+            .find(msg => {
+                const coinTagRegex = /\$[A-Za-z]+/;
+                return coinTagRegex.test(msg.content.text);
+            });
 
         const previousResponse = lastCoinAnalysis?.content?.text;
 
@@ -143,7 +146,7 @@ export default {
                 user: "{{agentName}}",
                 content: {
                     text: "I'll post that as a tweet now.",
-                    action: "SEND_TWEET",
+                    action: "MAKE_POST",
                 },
             },
         ],
@@ -156,7 +159,7 @@ export default {
                 user: "{{agentName}}",
                 content: {
                     text: "Sure, posting that right away.",
-                    action: "SEND_TWEET",
+                    action: "MAKE_POST",
                 },
             },
         ],
@@ -169,7 +172,7 @@ export default {
                 user: "{{agentName}}",
                 content: {
                     text: "On it, posting that tweet now.",
-                    action: "SEND_TWEET",
+                    action: "MAKE_POST",
                 }
             },
         ],
@@ -182,7 +185,7 @@ export default {
                 user: "{{agentName}}",
                 content: {
                     text: "Ok, I'll post that to X now.",
-                    action: "SEND_TWEET",
+                    action: "MAKE_POST",
                 },
             },
         ]
