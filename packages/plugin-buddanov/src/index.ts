@@ -3,11 +3,12 @@ import  getCoinInfoAction  from "./actions/getCoinInfoAction"
 import  fundThreadAction  from "./actions/fundThreadAction"
 import { TwitterPostJobService } from "./services/actionTimer";
 import sendTweetAction from "./actions/sendTweetAction";
+import DirectTwitterPostAction  from "./actions/directTwitterPost";
 
 export const buddanovPlugin: Plugin = {
     name: "buddanov",
     description: "Buddanov integration plugin",
-    actions: [fundThreadAction, getCoinInfoAction, sendTweetAction],
+    actions: [fundThreadAction, getCoinInfoAction, sendTweetAction, DirectTwitterPostAction],
     evaluators: [],
     providers: [new TwitterPostJobService()]
 };
