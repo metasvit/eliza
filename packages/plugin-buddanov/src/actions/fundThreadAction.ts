@@ -107,7 +107,13 @@ export default {
         elizaLogger.log("Starting hash analyze info handler...");
 
         try {
-            const scraper = new CookieScraper('3fdc3a017c03115652be8fe118b46952f4c72448');
+            const scraperKey = process.env.COOKIE_SCRAPER_KEY;
+            if (!scraperKey) {
+                console.error("❌ Cookie scraper key is not defined in the environment variables.");
+                return false;
+            }
+
+            const scraper = new CookieScraper(scraperKey);
             console.log("🔍 Starting scraping process...");
 
             // Get top agents and their addresses
