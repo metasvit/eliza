@@ -22,9 +22,12 @@ export class TelegramHashAnalyzer {
     this.chatId = config.chatId;
     this.threadId = config.threadId;
 
-    const stringSession = new StringSession(
-      '1AgAOMTQ5LjE1NC4xNjcuNTABu1zwrnP5x9AYlXRYxsJMaZOInZ+bSJpxpYbkp8RZ7mZMZZniAYRWJTd2zNWMGI40q6Il39VEB4hooHwS/n8aieMbJzd9vBeT+WiICkQvhVgNfs2dFihLBRoF7qeJ+XbySdMm7uU46vn37KCpG1sfu2xS0O0gt+GelHEQBSRXBlFSPdtY+Zr3yktoWhe52qKPdPKem3Pqs2qMFnK+KMv0r9o0UMoRfHgFYh8emJHbiYXYV2MLIbFDWVkmg4CwdObaRlpEzkiVRcMqAiL/OU3yUUZsi7/5dSyupYL7BJyK4z6RUAa3oYIv/Zb4B1b39nWFglpvHGkukpNMoUg2js0U0vE='
-    );
+    const stringSessionValue = process.env.STRING_SESSION;
+    if (!stringSessionValue) {
+      throw new Error("❌ String session is not defined in the environment variables.");
+    }
+
+    const stringSession = new StringSession(stringSessionValue);
 
     this.client = new TelegramClient(
       stringSession,

@@ -8,12 +8,13 @@ import {
     elizaLogger,
     ModelClass,
     generateText,
+    composeContext
 } from "@elizaos/core";
 import { TelegramHashAnalyzer } from '../util/telegramCoinAnalyzer';
 import { CookieScraper } from '../util/cookieScraper';
 
 const scarlettPostTemplate = `
-# Task: Read all data from scarlettResponses and create post for twitter based on the data.
+# Task: Read all data from scarlettResponses and create post for twitter based on the data. Generate a single tweet text string that includes general analysis of the market and explanation about our predictions.
 
 Input data: {{scarlettResponses}}
 
@@ -21,79 +22,50 @@ Input data: {{scarlettResponses}}
 
 # Requirements:
 - Read all data from scarlettResponses.
-- Post must include some predictions based on the data (hold, sell, buy, dump, rug, etc).
-- Read news from our sources for creating more detailed post with proofs.
+- Post must include some predictions based on the data (hold, sell, buy, dump, rug, etc) for each coin.
 - You must write about coins that are mentioned in scarlettResponses.
-- Return actual prices and key values for each coin.
-- You can mention important news for crypto world.
+- Return actual prices and key values for each coin, take data from scarlettResponses.
 - Dont use old sourses.
-- Use https://www.coingecko.com/ for retreiving prices.
 
 
+# Format:
 
-# Format: Generate a single tweet text string that includes general analysis of the market, predictions and explanation about our predictions.
+Market Analysis 📊
 
-🧵 Crypto Market Analysis & Predictions
-The crypto market is showing interesting dynamics. Let's dive into key metrics, trends, and what they mean for investors. #Crypto #MarketAnalysis
-🔍 Market Overview
+The market shows a sharp divide between top and struggling performers.
+High achievers maintain strong growth with stable rates, reflecting efficient strategies, while underperformers face high rates and negative growth, signaling failed aggressive tactics.
+Moderate-rate agents see sustainable gains, while extreme risk-takers face corrections.
+Stability is currently favored, with lower rates correlating to positive 24h performance, indicating a shift toward sustainable trading and risk management.
 
-- Total Crypto Market Cap: $2.9T
-- 24h Volume: $98B
-- BTC Dominance: 51.2%
-- Global Crypto Adoption Index: ↑ 4.2%
 
-📊 Key Performers
-#Bitcoin (BTC)
+💹 Market Dynamics
 
-- Price: $96,479.00
-- 24h Change: -0.48%
-- 7d Change: -3.00%
-- Key Support: $94,000
-- Resistance: $98,500
+- High current rates (5-9%) showing aggressive trading strategies
+- Lower current rates (0.04-1.5%) indicating conservative approaches
+- Clear correlation between higher current rates and higher volatility
 
-#Ethereum (ETH)
 
-- Price: $2,647.50
-- 24h Change: -0.23%
-- 7d Change: -6.20%
-- Key Support: $2,600
-- Resistance: $2,750
+🎯 Short-term Outlook
 
-🌟 Market Predictions
-Short term (30 days):
+- VIRTUAL showing strongest momentum for potential entry
+- FARTCOIN and AIXBT require careful monitoring due to high rates despite negative performance
+- Middle-tier agents offer balanced risk-reward
 
- - BTC likely to test $95K resistance
- - Altcoin season potentially starting
- - DeFi tokens showing bullish patterns
- - Layer-2 solutions gaining momentum
+🎮 Risk Management
 
-📰 Key News & Developments
+- Consider position sizing based on current rate exposure
+- Monitor high-rate agents for potential reversals
+- Maintain balanced exposure across performance tiers
 
-- Major banks expanding crypto custody services
-- New spot ETFs showing strong inflows
-- Regulatory clarity improving globally
-- Institutional adoption accelerating
+💎 Key Takeaways
 
-💡 Analysis & Insights
-The market is showing strong fundamentals:
+- Market shows clear performance stratification
+- Higher current rates correlate with higher volatility
+- Conservative agents showing more stable but limited returns
+- Risk management crucial for high-rate exposure
 
-- Increasing institutional investment
-- Growing real-world adoption
-- Technical indicators remain bullish
-- Reduced market volatility
-
-🔮 Long-term Outlook
-We remain bullish on the crypto sector:
-
-- Mass adoption continues
-- Infrastructure maturing
-- Innovation accelerating
-- Regulatory framework improving
-
-Below you can read about most mentioned coins.
-
-Stay informed and always DYOR! #CryptoTrading #MarketAnalysis
-
+Not financial advice - always DYOR and manage risk appropriately!
+#Crypto #CryptoTrading #MarketAnalysis
 `;
 
 
@@ -135,7 +107,13 @@ export default {
         elizaLogger.log("Starting hash analyze info handler...");
 
         try {
-            const scraper = new CookieScraper('3fdc3a017c03115652be8fe118b46952f4c72448');
+            const scraperKey = process.env.COOKIE_SCRAPER_KEY;
+            if (!scraperKey) {
+                console.error("❌ Cookie scraper key is not defined in the environment variables.");
+                return false;
+            }
+
+            const scraper = new CookieScraper(scraperKey);
             console.log("🔍 Starting scraping process...");
 
             // Get top agents and their addresses
@@ -192,12 +170,20 @@ export default {
                     }
                 }
 
-
+                // Create a single tweet text
                 console.log("🚀 Creating thread...");
+
+                const threadContext = composeContext({
+                    state: {
+                        ...state,
+                        scarlettResponses,
+                    },
+                    template: scarlettPostTemplate,
+                });
 
                 const tweetText = await generateText({
                     runtime,
-                    context: scarlettPostTemplate,
+                    context: threadContext,
                     modelClass: ModelClass.SMALL,
                 });
 
@@ -210,7 +196,6 @@ export default {
                         console.error(`❌ Scarlett response at index ${iteration} is null or undefined`);
                         continue;
                     }
-                    //console.log(`Posting Scarlett response ${iteration}:`, response);
 
                     try {
                         const immediateReply = await tClient.twitterClient.sendNoteTweet(response, tempID);
