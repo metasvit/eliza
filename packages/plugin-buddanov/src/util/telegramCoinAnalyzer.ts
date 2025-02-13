@@ -83,15 +83,12 @@ export class TelegramHashAnalyzer {
     }
 
     try {
-      console.log('🔧 Attempting to initialize Telegram client...');
       console.log(`📱 Using phone number: ${this.config.phoneNumber}`);
       console.log(`🆔 API ID: ${this.config.apiId}`);
 
-      console.log('🔄 Connecting to Telegram servers...');
       await this.client.connect();
       console.log('✅ Successfully connected to servers');
 
-      console.log('🔍 Checking authorization...');
       const isAuthorized = await this.client.isUserAuthorized();
       console.log(`📊 Authorization status: ${isAuthorized ? 'ACTIVE' : 'INACTIVE'}`);
 
@@ -100,7 +97,6 @@ export class TelegramHashAnalyzer {
         throw new Error('Unauthorized access');
       }
 
-      console.log('👤 Getting user information...');
       const me = await this.client.getMe();
       console.log(`🤖 Identified as: @${me.username} (${me.phone})`);
 
@@ -122,15 +118,14 @@ export class TelegramHashAnalyzer {
     error?: string;
   }> {
     try {
-      console.log('🔍 Starting hash analysis...');
       if (!this.isInitialized) {
         console.log('⚠️ Client not initialized, starting initialization...');
         await this.initialize();
       }
 
-      console.log('🔌 Checking connection status...');
+
       if (!this.client.connected) {
-        console.log('🔄 Restoring connection...');
+        console.log('🔌 Checking connection status...');
         await this.client.connect();
       }
 

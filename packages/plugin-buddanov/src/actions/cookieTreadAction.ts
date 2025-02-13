@@ -38,13 +38,6 @@ Moderate-rate agents see sustainable gains, while extreme risk-takers face corre
 Stability is currently favored, with lower rates correlating to positive 24h performance, indicating a shift toward sustainable trading and risk management.
 
 
-💹 Market Dynamics
-
-- High current rates (5-9%) showing aggressive trading strategies
-- Lower current rates (0.04-1.5%) indicating conservative approaches
-- Clear correlation between higher current rates and higher volatility
-
-
 🎯 Short-term Outlook
 
 - VIRTUAL showing strongest momentum for potential entry
@@ -68,11 +61,42 @@ Not financial advice - always DYOR and manage risk appropriately!
 #Crypto #CryptoTrading #MarketAnalysis
 `;
 
+// const scarlettResponseTemplate = `
+// # Task: Rewrite the responce based on the input data.
 
-interface ScarlettAnalysis {
-    address: string;
-    response: string;
-}
+// Input data: {{scarlettResponses}}
+
+// {{agentName}} shouldn't use IGNORE.
+
+// # Requirements:
+// - Dont add any additional information.
+// - Just rewrite the responce with your data from input.
+// - Dont lose any important information..
+// - Use input data to create a responce.
+// - Use input data for correct analysis.
+// - Use input data for actual info about the coin.
+
+// # Format:
+
+// Token: Broccoli
+// Market Cap: $3.4M | Price: $0.003432
+
+// Pros:
+// ✔ Strong early volume ($15.5M in 24h)
+// ✔ High holder count (11,159) for a new token
+// ✔ Multiple DEX pairs with decent liquidity
+// ✔ Raydium LP holds ~33M tokens (2nd largest wallet)
+// ✔ Viral hype from CZ’s tweet
+
+// Cons:
+// ✖ Extremely young token (<4 hours old)
+// ✖ Top 10 holders control ~10.8% (excluding LP)
+// ✖ Volume concentrated among top traders
+// ✖ Price already up 4,456% in 24h
+// ✖ Classic pump & dump pattern forming
+
+// This is pure memecoin hype—driven solely by CZ posting a pic of his dog. While the early metrics look strong, the rapid price spike and concentrated trading suggest this is a short-term play rather than a sustainable project. If you're jumping in, keep it small and take profits fast. The crypto streets are littered with dog tokens that didn’t survive their first walk.
+// `;
 
 
 function getRandomDelay(min: number, max: number): number {
@@ -81,7 +105,6 @@ function getRandomDelay(min: number, max: number): number {
 
 interface ExtendedState extends State {
     scrapedAddresses: string[];
-    scarlettAnalyses: ScarlettAnalysis[];
 }
 
 let isRunning = false;
@@ -153,7 +176,7 @@ export default {
 
             // Store scraped data in state for later use
             state.scrapedAddresses = extractedData;
-            state.scarlettAnalyses = []; // Initialize analyses array
+
 
             try {
                 // Initialize analyzer and process addresses
@@ -174,9 +197,23 @@ export default {
                         const result = await analyzer.analyzeHash(`analyze ${address}`);
 
                         if (result.status === 'success' && result.scarlettResponse) {
+                            if (result.scarlettResponse.length > 600) {
+                                // const contextResponce = composeContext({
+                                //     state: {
+                                //         ...state,
+                                //         scarlettResponse: result.scarlettResponse
+                                //     },
+                                //     template: scarlettResponseTemplate,
+                                // });
 
-                            scarlettResponses.push(result.scarlettResponse);
+                                // const response = await generateText({
+                                //     runtime,
+                                //     context: contextResponce,
+                                //     modelClass: ModelClass.SMALL,
+                                // });
 
+                                scarlettResponses.push(result.scarlettResponse);
+                            }
                             console.log(`✅ Analysis complete for ${address}`);
                         } else {
                             console.log(`❌ Failed to analyze ${address}: ${result.error || 'No response'}`);
