@@ -68,25 +68,6 @@ Not financial advice - always DYOR and manage risk appropriately!
 #Crypto #CryptoTrading #MarketAnalysis
 `;
 
-// const messageTemplate = `
-// # Task: Check if the response from AgentScarlett contains important information.
-
-// Input data: {{scarlettResponse}}
-
-// # Requirements:
-// - Identify if the response contains important metrics or information.
-// - Important information includes specific metrics, data points, or actionable insights.
-// - Return empty string if there is no important information.
-// - If there is no important information, return empty string.
-
-// - If there is important information, return {{scarlettResponse}} without any additional text.
-// - If there is important information, return {{scarlettResponse}} without editing.
-
-
-// # Format:
-// {{scarlettResponse}}
-// `;
-
 interface ScarlettAnalysis {
     address: string;
     response: string;
@@ -162,27 +143,6 @@ export default {
                         const result = await analyzer.analyzeHash(`analyze ${address}`);
 
                         if (result.status === 'success' && result.scarlettResponse) {
-
-                            // Use composeContext to check for important information
-                            // const messageContext = composeContext({
-                            //     state: {
-                            //         ...state,
-                            //         address,
-                            //     },
-                            //     template: messageTemplate,
-                            // });
-
-                            // const importantInfo = await generateText({
-                            //     runtime,
-                            //     context: messageContext,
-                            //     modelClass: ModelClass.SMALL,
-                            // });
-
-
-                            // if(importantInfo !== "" && importantInfo !== "empty") {
-                            //     scarlettResponses.push(importantInfo);
-                            // }
-
 
                             scarlettResponses.push(result.scarlettResponse);
 
