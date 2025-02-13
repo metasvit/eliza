@@ -61,7 +61,7 @@ export class TwitterPostJobService
         try {
             const url = "http://localhost:3000/" + agentId + "/message";
             const body = JSON.stringify({
-                text: "FUND_POST"
+                text: "FUND_THREAD"
             });
 
             const response = await fetch(url, {

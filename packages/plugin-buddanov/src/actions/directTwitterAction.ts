@@ -12,7 +12,7 @@ import {
 } from "@elizaos/core";
 
 export default {
-    name: "DIRECT_TWITTER_POST",
+    name: "DIRECT_TWITTER",
     similes: ["DIRECT TWEET", "DIRECT TWITTER POST", "DIRECT X POST",  "POST DIRECTLY TO TWITTER", "POST DIRECTLY TO X"],
     validate: async () => true,
     description: "Sends custom text directly to twitter, send only the text between the quotes",

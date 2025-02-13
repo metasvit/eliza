@@ -1,11 +1,5 @@
-import puppeteer from 'puppeteer-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-
-// Add type assertion for StealthPlugin
-const stealth = StealthPlugin() as any;
-puppeteer.use(stealth);
 
 interface Agent {
     name: string;

@@ -10,7 +10,7 @@ import {
 import { TelegramHashAnalyzer } from "../util/telegramCoinAnalyzer";
 
 export default {
-    name: "COIN_INFO",
+    name: "GET_COIN_INFO",
     similes: ["get info", "info", "get coin info", "coin info"],
     validate: async () => true,
     description: "Returns info about a coin, address or token",

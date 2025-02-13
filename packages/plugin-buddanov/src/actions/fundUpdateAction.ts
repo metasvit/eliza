@@ -11,7 +11,7 @@ import {
     composeContext
 } from "@elizaos/core";
 import { TelegramHashAnalyzer } from '../util/telegramCoinAnalyzer';
-import { CookieScraper } from '../util/cookieScraper';
+import fetch from 'node-fetch';
 
 const scarlettPostTemplate = `
 # Task: Read all data from scarlettResponses and create post for twitter based on the data. Generate a single tweet text string that includes general analysis of the market and explanation about our predictions.
@@ -105,10 +105,10 @@ interface ExtendedState extends State {
 let isRunning = false;
 
 export default {
-    name: "FUND_THREAD",
-    similes: ["FUND THREAD", "THREAD FUND", "MAKE A FUND THREAD"],
+    name: "FUND_UPDATE",
+    similes: ["FUND_UPDATE", "UPDATE_FUND", "UPDATE FUND"],
     validate: async () => true,
-    description: "Analyzes a set of addresses and posts the results to Twitter",
+    description: "Analyzes a set of addresses from the fund and posts the results to Twitter",
     handler: async (
         runtime: IAgentRuntime,
         message: Memory,
@@ -125,31 +125,19 @@ export default {
         elizaLogger.log("Starting hash analyze info handler...");
 
         try {
-            const scraperKey = process.env.COOKIE_SCRAPER_KEY;
-            if (!scraperKey) {
-                console.error("❌ Cookie scraper key is not defined in the environment variables.");
-                return false;
+            //Get addresses from fund and their addresses
+            const response = await fetch('https://api.b11a.xyz/api/v1/public/gmxbt/funds/1/portfolio');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
+            const portfolioData = await response.json();
 
-            const scraper = new CookieScraper(scraperKey);
-            console.log("🔍 Starting scraping process...");
+            // Extract token addresses from the portfolio
+            const extractedData = portfolioData.tokens
+                .filter(token => token.id !== 'base') // Optional: exclude the native ETH entry
+                .map(token => token.id);
 
-            // Get top agents and their addresses
-            const agents = await scraper.scrapeTopAgents();
-
-            if (!agents) {
-                console.log("❌ Failed to scrape agents");
-                return false;
-            }
-
-            // Extract addresses from agents
-            const extractedData = agents
-                .filter(agent => agent.address !== null)
-                .map(agent => agent.address as string);
-
-            // Log results
-            console.log("✅ Extraction completed");
-            console.log("Found addresses:", extractedData);
+            console.log("🔍 Found addresses:", extractedData);
 
             // Store scraped data in state for later use
             state.scrapedAddresses = extractedData;
