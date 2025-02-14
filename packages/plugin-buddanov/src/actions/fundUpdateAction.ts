@@ -118,10 +118,12 @@ export default {
 
             // Extract token addresses from the portfolio
             const extractedData = portfolioData.tokens
-                .filter(token => token.id !== 'base') // Optional: exclude the native ETH entry
+                .filter(token => token.id !== 'base')
+                .sort((a, b) => b.amountUsd - a.amountUsd)
+                .slice(0, 5)
                 .map(token => token.id);
 
-            console.log("🔍 Found addresses:", extractedData);
+            elizaLogger.log("🔍 Found addresses:", extractedData);
 
             // Store scraped data in state for later use
             state.scrapedAddresses = extractedData;
