@@ -25,7 +25,8 @@ Input data: {{scarlettResponses}}
 - Post must include some predictions based on the data (hold, sell, buy, dump, rug, etc) for each coin.
 - You must write about coins that are mentioned in scarlettResponses.
 - Return actual prices and key values for each coin, take data from scarlettResponses.
-- Dont use old sourses.
+- Dont use markups.
+- Predictions must be writed just after the coin info.
 
 
 # Format:
@@ -40,15 +41,14 @@ Stability is currently favored, with lower rates correlating to positive 24h per
 
 🎯 Short-term Outlook
 
-- VIRTUAL showing strongest momentum for potential entry
-- FARTCOIN and AIXBT require careful monitoring due to high rates despite negative performance
-- Middle-tier agents offer balanced risk-reward
+- $FARTCOIN ($0.51): Despite decent liquidity ($18.9M on Raydium) and high trading volume ($55.7M), the lack of utility and high concentration among top holders (13.8% of supply) make this a risky momentum play.
+Prediction: Hold or cautiously monitor.
 
-🎮 Risk Management
+- $AIXBT ($0.2388): With a market cap of $204.4M and a large holder base (303k+), the trading volume is promising. However, bearish technical signals and selling pressure from top traders hint at a potential downturn.
+Prediction: Sell or wait for clearer entry signals.
 
-- Consider position sizing based on current rate exposure
-- Monitor high-rate agents for potential reversals
-- Maintain balanced exposure across performance tiers
+- $TOSHI ($0.000763): While it boasts a broad holder base (541k) and strong trading volume ($10.9M), the absence of clear utility raises concerns. The community's inflated sentiment could suggest manipulation.
+Prediction: Dump if holding; avoid new positions.
 
 💎 Key Takeaways
 
