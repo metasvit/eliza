@@ -10,6 +10,7 @@ import {
     generateText,
     ActionExample,
 } from "@elizaos/core";
+import { validatePlatformAndUser } from '../util/validatePlatformAndUser';
 
 const postTemplate = `
 # Task: Create an engaging tweet about the coin analysis
@@ -48,23 +49,7 @@ export default {
     name: "MAKE_POST",
     similes: ["MAKE POST", "POST", "TWEET POST", "POST TWEET", "SEND TO TWITTER", "SEND TO X", "X POST", "MAKE AN X POST"],
     validate: async (runtime: IAgentRuntime, message: Memory) => {
-        // Add the allowed room ID check
-        const allowedRoomId = process.env.ALLOWED_ROOM_ID; // Ensure this is set in your environment variables
-        const currentRoomId = message.roomId; // Assuming `roomId` is a property of `message`
-
-        // Check if the action is triggered from Telegram
-        const sourcePlatform = message.content.source; // Assuming `source` is a property of `message.content`
-        if (sourcePlatform !== "telegram") {
-            elizaLogger.log(`Unauthorized platform access attempt from source: ${sourcePlatform}`);
-            return false;
-        }
-
-        if (currentRoomId !== allowedRoomId) {
-            elizaLogger.log(`Unauthorized room access attempt from room ID: ${currentRoomId}`);
-            return false;
-        }
-
-        return true;
+        return await validatePlatformAndUser(message);
     },
     description: "Sends previous agent reponse to twitter",
     handler: async (

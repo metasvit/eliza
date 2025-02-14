@@ -12,6 +12,7 @@ import {
 } from "@elizaos/core";
 import { TelegramHashAnalyzer } from '../util/telegramCoinAnalyzer';
 import { CookieScraper } from '../util/cookieScraper';
+import { validatePlatformAndUser } from '../util/validatePlatformAndUser';
 
 const scarlettPostTemplate = `
 # Task: Read all data from scarlettResponses and create post for twitter based on the data. Generate a single tweet text string that includes general analysis of the market and explanation about our predictions.
@@ -86,7 +87,7 @@ Not financial advice - always DYOR and manage risk appropriately!
 // ✔ High holder count (11,159) for a new token
 // ✔ Multiple DEX pairs with decent liquidity
 // ✔ Raydium LP holds ~33M tokens (2nd largest wallet)
-// ✔ Viral hype from CZ’s tweet
+// ✔ Viral hype from CZ's tweet
 
 // Cons:
 // ✖ Extremely young token (<4 hours old)
@@ -95,7 +96,7 @@ Not financial advice - always DYOR and manage risk appropriately!
 // ✖ Price already up 4,456% in 24h
 // ✖ Classic pump & dump pattern forming
 
-// This is pure memecoin hype—driven solely by CZ posting a pic of his dog. While the early metrics look strong, the rapid price spike and concentrated trading suggest this is a short-term play rather than a sustainable project. If you're jumping in, keep it small and take profits fast. The crypto streets are littered with dog tokens that didn’t survive their first walk.
+// This is pure memecoin hype—driven solely by CZ posting a pic of his dog. While the early metrics look strong, the rapid price spike and concentrated trading suggest this is a short-term play rather than a sustainable project. If you're jumping in, keep it small and take profits fast. The crypto streets are littered with dog tokens that didn't survive their first walk.
 // `;
 
 
@@ -113,23 +114,7 @@ export default {
     name: "COOKIE_THREAD",
     similes: ["COOKIE THREAD", "THREAD COOKIE", "MAKE A COOKIE THREAD"],
     validate: async (runtime: IAgentRuntime, message: Memory) => {
-        // Add the allowed room ID check
-        const allowedRoomId = process.env.ALLOWED_ROOM_ID; // Ensure this is set in your environment variables
-        const currentRoomId = message.roomId; // Assuming `roomId` is a property of `message`
-
-        // Check if the action is triggered from Telegram
-        const sourcePlatform = message.content.source; // Assuming `source` is a property of `message.content`
-        if (sourcePlatform !== "telegram") {
-            elizaLogger.log(`Unauthorized platform access attempt from source: ${sourcePlatform}`);
-            return false;
-        }
-
-        if (currentRoomId !== allowedRoomId) {
-            elizaLogger.log(`Unauthorized room access attempt from room ID: ${currentRoomId}`);
-            return false;
-        }
-
-        return true;
+        return await validatePlatformAndUser(message);
     },
     description: "Analyzes a set of addresses from cookie.fun and posts the results to Twitter",
     handler: async (

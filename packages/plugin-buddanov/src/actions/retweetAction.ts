@@ -7,28 +7,13 @@ import {
     elizaLogger,
     ActionExample,
 } from "@elizaos/core";
+import { validatePlatformAndUser } from '../util/validatePlatformAndUser';
 
 export default {
     name: "RETWEET",
     similes: ["RETWEET", "RT", "SHARE", "SHARE TWEET"],
     validate: async (runtime: IAgentRuntime, message: Memory) => {
-        // Add the allowed room ID check
-        const allowedRoomId = process.env.ALLOWED_ROOM_ID; // Ensure this is set in your environment variables
-        const currentRoomId = message.roomId; // Assuming `roomId` is a property of `message`
-
-        // Check if the action is triggered from Telegram
-        const sourcePlatform = message.content.source; // Assuming `source` is a property of `message.content`
-        if (sourcePlatform !== "telegram") {
-            elizaLogger.log(`Unauthorized platform access attempt from source: ${sourcePlatform}`);
-            return false;
-        }
-
-        if (currentRoomId !== allowedRoomId) {
-            elizaLogger.log(`Unauthorized room access attempt from room ID: ${currentRoomId}`);
-            return false;
-        }
-
-        return true;
+        return await validatePlatformAndUser(message);
     },
     description: "Reposts a tweet from a link",
     handler: async (

@@ -12,6 +12,7 @@ import {
 } from "@elizaos/core";
 import { TelegramHashAnalyzer } from '../util/telegramCoinAnalyzer';
 import fetch from 'node-fetch';
+import { validatePlatformAndUser } from '../util/validatePlatformAndUser';
 
 const scarlettPostTemplate = `
 # Task: Read all data from scarlettResponses and create post for twitter based on the data. Generate a single tweet text string that includes general analysis of the market and explanation about our predictions.
@@ -89,23 +90,7 @@ export default {
     name: "FUND_UPDATE",
     similes: ["FUND_UPDATE", "UPDATE_FUND", "UPDATE FUND"],
     validate: async (runtime: IAgentRuntime, message: Memory) => {
-        // Add the allowed room ID check
-        const allowedRoomId = process.env.ALLOWED_ROOM_ID; // Ensure this is set in your environment variables
-        const currentRoomId = message.roomId; // Assuming `roomId` is a property of `message`
-
-        // Check if the action is triggered from Telegram
-        const sourcePlatform = message.content.source; // Assuming `source` is a property of `message.content`
-        if (sourcePlatform !== "telegram") {
-            elizaLogger.log(`Unauthorized platform access attempt from source: ${sourcePlatform}`);
-            return false;
-        }
-
-        if (currentRoomId !== allowedRoomId) {
-            elizaLogger.log(`Unauthorized room access attempt from room ID: ${currentRoomId}`);
-            return false;
-        }
-
-        return true;
+        return await validatePlatformAndUser(message);
     },
     description: "Analyzes a set of addresses from the fund and posts the results to Twitter",
     handler: async (

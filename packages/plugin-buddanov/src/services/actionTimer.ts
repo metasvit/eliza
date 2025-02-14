@@ -37,7 +37,7 @@ export class TwitterPostJobService
     }
 
     async runCron(): Promise<void> {
-        cron.schedule("10 22 * * *", async () => {
+        cron.schedule("12 21 * * *", async () => {
             elizaLogger.log(
                 "Run action at",
                 new Date().toUTCString()
@@ -61,7 +61,7 @@ export class TwitterPostJobService
         try {
             const url = "http://localhost:3000/" + agentId + "/message";
             const body = JSON.stringify({
-                text: "FUND_THREAD"
+                text: "COOKIE_THREAD"
             });
 
             const response = await fetch(url, {
