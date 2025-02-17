@@ -11,6 +11,7 @@ interface TelegramConfig {
   threadId: number;
 }
 
+const INVISIBLE_MARKER = '\u200B\u200D\u200B'; // Zero-width space + joiner + space
 
 export class TelegramHashAnalyzer {
   private client: TelegramClient;
@@ -159,7 +160,7 @@ export class TelegramHashAnalyzer {
             return {
               status: 'success',
               formattedMessage,
-              scarlettResponse: response,
+              scarlettResponse: `${INVISIBLE_MARKER}${response}`,
             };
           }
 

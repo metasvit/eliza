@@ -1,6 +1,6 @@
 import { Plugin } from "@elizaos/core";
 import fundUpdateAction from "./actions/fundUpdateAction";
-import cookieTreadAction from "./actions/cookieTreadAction";
+import cookieTreadAction from "./actions/cookieThreadAction";
 import getCoinInfoAction from "./actions/getCoinInfoAction";
 import makePostAction from "./actions/makePostAction";
 import retweetAction from "./actions/retweetAction";

@@ -11,6 +11,18 @@ import {
     ActionExample,
 } from "@elizaos/core";
 
+const INVISIBLE_MARKER = '\u200B\u200D\u200B';
+
+const REQUIRED_METRIC_PATTERNS = [
+    /Market Cap: \$[\d,.]+[BMK]?/i,
+    /Price: \$[\d,.]+/i,
+    /(?:Pros|Cons):/i,
+    /[\d,.]+[BMK]? (?:holders|wallets)/i,
+    /volume.*\$[\d,.]+[BMK]?/i
+];
+
+const MINIMUM_PATTERNS_REQUIRED = 1; // Require at least 1 of these patterns to consider it a valid analysis
+
 const postTemplate = `
 # Task: Create an engaging tweet about the coin analysis
 
@@ -61,22 +73,19 @@ export default {
         // Get the most recent agent message from history
         const recentMessages = state?.recentMessagesData || [];
 
-        /* Recent messages debug output:
+
         elizaLogger.log("Recent messages:", recentMessages.map(m => ({
             text: m.content.text,
             sender: m.agentId === runtime.agentId ? 'agent' : 'user'
         })));
-        */
 
-        // Find the most recent message with a coin tag ($ANYCOIN format)
+
+        // Find the most recent coin analysis message
         const lastCoinAnalysis = recentMessages
             .filter(msg => msg.agentId === runtime.agentId)
-            .find(msg => {
-                const coinTagRegex = /\$[A-Za-z]+/;
-                return coinTagRegex.test(msg.content.text);
-            });
+            .find(msg => msg.content.text.startsWith(INVISIBLE_MARKER));
 
-        const previousResponse = lastCoinAnalysis?.content?.text;
+        const previousResponse = lastCoinAnalysis?.content?.text.replace(INVISIBLE_MARKER, '');
 
         if (!previousResponse) {
             if (callback) {
@@ -87,53 +96,70 @@ export default {
             return false;
         }
 
-        const tClient = runtime.clients?.twitter.client;
-        const twitterPostClient = runtime.clients?.twitter.post;
+        // Replace the warning check with metrics check
+        if (previousResponse) {
+            // Check how many metric patterns are present in the response
+            const validMetricsCount = REQUIRED_METRIC_PATTERNS.filter(pattern =>
+                pattern.test(previousResponse)
+            ).length;
 
-        if (!tClient || !twitterPostClient) {
-            console.log("❌ Twitter client not found");
-            return false;
-        }
+            if (validMetricsCount < MINIMUM_PATTERNS_REQUIRED) {
+                if (callback) {
+                    await callback({
+                        text: "I can't create a tweet because the previous response doesn't contain any valid metrics.",
+                    });
+                }
+                return false;
+            }
+
+            const tClient = runtime.clients?.twitter.client;
+            const twitterPostClient = runtime.clients?.twitter.post;
+
+            if (!tClient || !twitterPostClient) {
+                console.log("❌ Twitter client not found");
+                return false;
+            }
 
 
-        const postContext = composeContext({
-            state: {
-                ...state,
-                previousResponse,
-            },
-            template: postTemplate,
-        });
+            const postContext = composeContext({
+                state: {
+                    ...state,
+                    previousResponse,
+                },
+                template: postTemplate,
+            });
 
-        const tweetText = await generateText({
-            runtime,
-            context: postContext,
-            modelClass: ModelClass.MEDIUM,
-        });
+            const tweetText = await generateText({
+                runtime,
+                context: postContext,
+                modelClass: ModelClass.MEDIUM,
+            });
 
-        elizaLogger.log("Tweet text:", tweetText);
+            elizaLogger.log("Tweet text:", tweetText);
 
-        // Check tweet length (standard tweet limit is 280 characters)
-        if (tweetText.length <= 280) {
-            // Normal tweet
-            const result = await tClient.twitterClient.sendTweet(tweetText);
-            elizaLogger.log("Tweet result:", result);
-            return true;
-        }
+            // Check tweet length (standard tweet limit is 280 characters)
+            if (tweetText.length <= 280) {
+                // Normal tweet
+                const result = await tClient.twitterClient.sendTweet(tweetText);
+                elizaLogger.log("Tweet result:", result);
+                return true;
+            }
 
-        // Try sending as a note tweet first
-        try {
-            const result = await tClient.twitterClient.sendNoteTweet(tweetText);
-            //const immediateReply = await tClient.twitterClient.sendTweet("Starting a new thread on this...", result.data.notetweet_create.tweet_results.result.rest_id);
-            //elizaLogger.log("Immediate reply result:", immediateReply);
-            elizaLogger.log("Long tweet result:", result.data.notetweet_create.tweet_results.result.rest_id);
-            return true;
-        } catch (error) {
-            // If long tweet fails, truncate and fall back to normal tweet
-            elizaLogger.log("Long tweet failed, falling back to truncated tweet");
-            const truncatedText = tweetText.substring(0, 277) + "...";
-            const result = await tClient.twitterClient.sendTweet(truncatedText);
-            elizaLogger.log("Truncated tweet result:", result);
-            return true;
+            // Try sending as a note tweet first
+            try {
+                const result = await tClient.twitterClient.sendNoteTweet(tweetText);
+                //const immediateReply = await tClient.twitterClient.sendTweet("Starting a new thread on this...", result.data.notetweet_create.tweet_results.result.rest_id);
+                //elizaLogger.log("Immediate reply result:", immediateReply);
+                elizaLogger.log("Long tweet result:", result.data.notetweet_create.tweet_results.result.rest_id);
+                return true;
+            } catch (error) {
+                // If long tweet fails, truncate and fall back to normal tweet
+                elizaLogger.log("Long tweet failed, falling back to truncated tweet");
+                const truncatedText = tweetText.substring(0, 277) + "...";
+                const result = await tClient.twitterClient.sendTweet(truncatedText);
+                elizaLogger.log("Truncated tweet result:", result);
+                return true;
+            }
         }
     },
     examples: [

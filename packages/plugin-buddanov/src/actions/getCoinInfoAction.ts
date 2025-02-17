@@ -37,11 +37,11 @@ export default {
 
             if(result.status === "success" && result.scarlettResponse){
                 callback?.({
-                    text: result.scarlettResponse,
+                    text: result.scarlettResponse.replace("[SCARLETT_ANALYSIS]\n", ""),
                 });
             } else if (result.status === "error"){
                 callback?.({
-                    text: "❌Error analyzing hash: ${result.error}"
+                    text: `❌Error analyzing hash: ${result.error}`
                 });
             } else {
                 callback?.({
