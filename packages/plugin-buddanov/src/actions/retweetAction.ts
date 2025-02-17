@@ -7,11 +7,14 @@ import {
     elizaLogger,
     ActionExample,
 } from "@elizaos/core";
+import { validatePlatformAndUser } from '../util/validatePlatformAndUser';
 
 export default {
     name: "RETWEET",
     similes: ["RETWEET", "RT", "SHARE", "SHARE TWEET"],
-    validate: async () => true,
+    validate: async (runtime: IAgentRuntime, message: Memory) => {
+        return await validatePlatformAndUser(message);
+    },
     description: "Reposts a tweet from a link",
     handler: async (
         runtime: IAgentRuntime,

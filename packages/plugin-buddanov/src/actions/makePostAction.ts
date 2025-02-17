@@ -10,6 +10,7 @@ import {
     generateText,
     ActionExample,
 } from "@elizaos/core";
+import { validatePlatformAndUser } from '../util/validatePlatformAndUser';
 
 const INVISIBLE_MARKER = '\u200B\u200D\u200B';
 
@@ -59,7 +60,9 @@ Input data: {{previousResponse}}
 export default {
     name: "MAKE_POST",
     similes: ["MAKE POST", "POST", "TWEET POST", "POST TWEET", "SEND TO TWITTER", "SEND TO X", "X POST", "MAKE AN X POST"],
-    validate: async () => true,
+    validate: async (runtime: IAgentRuntime, message: Memory) => {
+        return await validatePlatformAndUser(message);
+    },
     description: "Sends previous agent reponse to twitter",
     handler: async (
         runtime: IAgentRuntime,

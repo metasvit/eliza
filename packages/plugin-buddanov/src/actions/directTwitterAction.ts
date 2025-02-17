@@ -10,11 +10,14 @@ import {
     generateText,
     ActionExample,
 } from "@elizaos/core";
+import { validatePlatformAndUser } from '../util/validatePlatformAndUser';
 
 export default {
     name: "DIRECT_TWITTER",
     similes: ["DIRECT TWEET", "DIRECT TWITTER POST", "DIRECT X POST",  "POST DIRECTLY TO TWITTER", "POST DIRECTLY TO X"],
-    validate: async () => true,
+    validate: async (runtime: IAgentRuntime, message: Memory) => {
+        return await validatePlatformAndUser(message);
+    },
     description: "Sends custom text directly to twitter, send only the text between the quotes",
     handler: async (
         runtime: IAgentRuntime,

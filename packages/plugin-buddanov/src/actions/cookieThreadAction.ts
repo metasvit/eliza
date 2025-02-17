@@ -12,6 +12,7 @@ import {
 } from "@elizaos/core";
 import { TelegramHashAnalyzer } from '../util/telegramCoinAnalyzer';
 import { CookieScraper } from '../util/cookieScraper';
+import { validatePlatformAndUser } from '../util/validatePlatformAndUser';
 
 const scarlettPostTemplate = `
 # Task: Read all data from scarlettResponses and create post for twitter based on the data. Generate a single tweet text string that includes general analysis of the market and explanation about our predictions.
@@ -25,7 +26,8 @@ Input data: {{scarlettResponses}}
 - Post must include some predictions based on the data (hold, sell, buy, dump, rug, etc) for each coin.
 - You must write about coins that are mentioned in scarlettResponses.
 - Return actual prices and key values for each coin, take data from scarlettResponses.
-- Dont use old sourses.
+- Dont use markups.
+- Predictions must be writed just after the coin info.
 
 
 # Format:
@@ -38,24 +40,16 @@ Moderate-rate agents see sustainable gains, while extreme risk-takers face corre
 Stability is currently favored, with lower rates correlating to positive 24h performance, indicating a shift toward sustainable trading and risk management.
 
 
-💹 Market Dynamics
-
-- High current rates (5-9%) showing aggressive trading strategies
-- Lower current rates (0.04-1.5%) indicating conservative approaches
-- Clear correlation between higher current rates and higher volatility
-
-
 🎯 Short-term Outlook
 
-- VIRTUAL showing strongest momentum for potential entry
-- FARTCOIN and AIXBT require careful monitoring due to high rates despite negative performance
-- Middle-tier agents offer balanced risk-reward
+- $FARTCOIN ($0.51): Despite decent liquidity ($18.9M on Raydium) and high trading volume ($55.7M), the lack of utility and high concentration among top holders (13.8% of supply) make this a risky momentum play.
+Prediction: Hold or cautiously monitor.
 
-🎮 Risk Management
+- $AIXBT ($0.2388): With a market cap of $204.4M and a large holder base (303k+), the trading volume is promising. However, bearish technical signals and selling pressure from top traders hint at a potential downturn.
+Prediction: Sell or wait for clearer entry signals.
 
-- Consider position sizing based on current rate exposure
-- Monitor high-rate agents for potential reversals
-- Maintain balanced exposure across performance tiers
+- $TOSHI ($0.000763): While it boasts a broad holder base (541k) and strong trading volume ($10.9M), the absence of clear utility raises concerns. The community's inflated sentiment could suggest manipulation.
+Prediction: Dump if holding; avoid new positions.
 
 💎 Key Takeaways
 
@@ -68,29 +62,42 @@ Not financial advice - always DYOR and manage risk appropriately!
 #Crypto #CryptoTrading #MarketAnalysis
 `;
 
-// const messageTemplate = `
-// # Task: Check if the response from AgentScarlett contains important information.
+// const scarlettResponseTemplate = `
+// # Task: Rewrite the responce based on the input data.
 
-// Input data: {{scarlettResponse}}
+// Input data: {{scarlettResponses}}
+
+// {{agentName}} shouldn't use IGNORE.
 
 // # Requirements:
-// - Identify if the response contains important metrics or information.
-// - Important information includes specific metrics, data points, or actionable insights.
-// - Return empty string if there is no important information.
-// - If there is no important information, return empty string.
-
-// - If there is important information, return {{scarlettResponse}} without any additional text.
-// - If there is important information, return {{scarlettResponse}} without editing.
-
+// - Dont add any additional information.
+// - Just rewrite the responce with your data from input.
+// - Dont lose any important information..
+// - Use input data to create a responce.
+// - Use input data for correct analysis.
+// - Use input data for actual info about the coin.
 
 // # Format:
-// {{scarlettResponse}}
-// `;
 
-interface ScarlettAnalysis {
-    address: string;
-    response: string;
-}
+// Token: Broccoli
+// Market Cap: $3.4M | Price: $0.003432
+
+// Pros:
+// ✔ Strong early volume ($15.5M in 24h)
+// ✔ High holder count (11,159) for a new token
+// ✔ Multiple DEX pairs with decent liquidity
+// ✔ Raydium LP holds ~33M tokens (2nd largest wallet)
+// ✔ Viral hype from CZ's tweet
+
+// Cons:
+// ✖ Extremely young token (<4 hours old)
+// ✖ Top 10 holders control ~10.8% (excluding LP)
+// ✖ Volume concentrated among top traders
+// ✖ Price already up 4,456% in 24h
+// ✖ Classic pump & dump pattern forming
+
+// This is pure memecoin hype—driven solely by CZ posting a pic of his dog. While the early metrics look strong, the rapid price spike and concentrated trading suggest this is a short-term play rather than a sustainable project. If you're jumping in, keep it small and take profits fast. The crypto streets are littered with dog tokens that didn't survive their first walk.
+// `;
 
 
 function getRandomDelay(min: number, max: number): number {
@@ -99,7 +106,6 @@ function getRandomDelay(min: number, max: number): number {
 
 interface ExtendedState extends State {
     scrapedAddresses: string[];
-    scarlettAnalyses: ScarlettAnalysis[];
 }
 
 let isRunning = false;
@@ -107,7 +113,9 @@ let isRunning = false;
 export default {
     name: "COOKIE_THREAD",
     similes: ["COOKIE THREAD", "THREAD COOKIE", "MAKE A COOKIE THREAD"],
-    validate: async () => true,
+    validate: async (runtime: IAgentRuntime, message: Memory) => {
+        return await validatePlatformAndUser(message);
+    },
     description: "Analyzes a set of addresses from cookie.fun and posts the results to Twitter",
     handler: async (
         runtime: IAgentRuntime,
@@ -153,7 +161,7 @@ export default {
 
             // Store scraped data in state for later use
             state.scrapedAddresses = extractedData;
-            state.scarlettAnalyses = []; // Initialize analyses array
+
 
             try {
                 // Initialize analyzer and process addresses
@@ -174,30 +182,23 @@ export default {
                         const result = await analyzer.analyzeHash(`analyze ${address}`);
 
                         if (result.status === 'success' && result.scarlettResponse) {
+                            if (result.scarlettResponse.length > 600) {
+                                // const contextResponce = composeContext({
+                                //     state: {
+                                //         ...state,
+                                //         scarlettResponse: result.scarlettResponse
+                                //     },
+                                //     template: scarlettResponseTemplate,
+                                // });
 
-                            // Use composeContext to check for important information
-                            // const messageContext = composeContext({
-                            //     state: {
-                            //         ...state,
-                            //         address,
-                            //     },
-                            //     template: messageTemplate,
-                            // });
+                                // const response = await generateText({
+                                //     runtime,
+                                //     context: contextResponce,
+                                //     modelClass: ModelClass.SMALL,
+                                // });
 
-                            // const importantInfo = await generateText({
-                            //     runtime,
-                            //     context: messageContext,
-                            //     modelClass: ModelClass.SMALL,
-                            // });
-
-
-                            // if(importantInfo !== "" && importantInfo !== "empty") {
-                            //     scarlettResponses.push(importantInfo);
-                            // }
-
-
-                            scarlettResponses.push(result.scarlettResponse);
-
+                                scarlettResponses.push(result.scarlettResponse);
+                            }
                             console.log(`✅ Analysis complete for ${address}`);
                         } else {
                             console.log(`❌ Failed to analyze ${address}: ${result.error || 'No response'}`);

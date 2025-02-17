@@ -12,6 +12,7 @@ import {
 } from "@elizaos/core";
 import { TelegramHashAnalyzer } from '../util/telegramCoinAnalyzer';
 import fetch from 'node-fetch';
+import { validatePlatformAndUser } from '../util/validatePlatformAndUser';
 
 const scarlettPostTemplate = `
 # Task: Read all data from scarlettResponses and create post for twitter based on the data. Generate a single tweet text string that includes general analysis of the market and explanation about our predictions.
@@ -68,25 +69,6 @@ Not financial advice - always DYOR and manage risk appropriately!
 #Crypto #CryptoTrading #MarketAnalysis
 `;
 
-// const messageTemplate = `
-// # Task: Check if the response from AgentScarlett contains important information.
-
-// Input data: {{scarlettResponse}}
-
-// # Requirements:
-// - Identify if the response contains important metrics or information.
-// - Important information includes specific metrics, data points, or actionable insights.
-// - Return empty string if there is no important information.
-// - If there is no important information, return empty string.
-
-// - If there is important information, return {{scarlettResponse}} without any additional text.
-// - If there is important information, return {{scarlettResponse}} without editing.
-
-
-// # Format:
-// {{scarlettResponse}}
-// `;
-
 interface ScarlettAnalysis {
     address: string;
     response: string;
@@ -107,7 +89,9 @@ let isRunning = false;
 export default {
     name: "FUND_UPDATE",
     similes: ["FUND_UPDATE", "UPDATE_FUND", "UPDATE FUND"],
-    validate: async () => true,
+    validate: async (runtime: IAgentRuntime, message: Memory) => {
+        return await validatePlatformAndUser(message);
+    },
     description: "Analyzes a set of addresses from the fund and posts the results to Twitter",
     handler: async (
         runtime: IAgentRuntime,
@@ -134,10 +118,12 @@ export default {
 
             // Extract token addresses from the portfolio
             const extractedData = portfolioData.tokens
-                .filter(token => token.id !== 'base') // Optional: exclude the native ETH entry
+                .filter(token => token.id !== 'base')
+                .sort((a, b) => b.amountUsd - a.amountUsd)
+                .slice(0, 5)
                 .map(token => token.id);
 
-            console.log("🔍 Found addresses:", extractedData);
+            elizaLogger.log("🔍 Found addresses:", extractedData);
 
             // Store scraped data in state for later use
             state.scrapedAddresses = extractedData;
@@ -162,27 +148,6 @@ export default {
                         const result = await analyzer.analyzeHash(`analyze ${address}`);
 
                         if (result.status === 'success' && result.scarlettResponse) {
-
-                            // Use composeContext to check for important information
-                            // const messageContext = composeContext({
-                            //     state: {
-                            //         ...state,
-                            //         address,
-                            //     },
-                            //     template: messageTemplate,
-                            // });
-
-                            // const importantInfo = await generateText({
-                            //     runtime,
-                            //     context: messageContext,
-                            //     modelClass: ModelClass.SMALL,
-                            // });
-
-
-                            // if(importantInfo !== "" && importantInfo !== "empty") {
-                            //     scarlettResponses.push(importantInfo);
-                            // }
-
 
                             scarlettResponses.push(result.scarlettResponse);
 
